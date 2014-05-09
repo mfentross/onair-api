@@ -1,0 +1,143 @@
+package controllers
+
+import play.api.mvc.{Action, Controller}
+import play.modules.reactivemongo.MongoController
+import play.modules.reactivemongo.json.collection.JSONCollection
+import models.{User, UserAccountRequest, UserLoginRequest, Session}
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.json.Json
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter
+
+
+/**
+ * Created by René Jahn on 08.02.14.
+ */
+object Identification extends Controller with MongoController {
+  def userCollection: JSONCollection = User.userCollection
+  def sessionCollection: JSONCollection = Session.sessionCollection
+
+
+  /**
+    * demo function to show how to get user from
+    * AuthenticatedRequest (ar)
+    *
+    * @return
+    */
+  def getMe = Authenticated { ar =>
+    Ok(Json.toJson(ar.user))
+  }
+
+  /**
+   * The register method is used for registering a new user. A database entry
+   * as well as an ID will be created.
+   * The function requires a JSONObject with following keys:
+   * firstname, lastname, username, email, password
+   * @return JSONObject with SessionToken
+   */
+  def register = Action.async(parse.json) { implicit request =>
+    val udid: Option[String]= request.headers.get("udid")
+    if(udid.isDefined) {
+      request.body.validate[UserAccountRequest].map{ req =>
+        val json = Json.obj("username" -> req.username ,"phonenumber" -> req.phonenumber, "email" -> req.email)
+        userCollection.find(json).one[User].map { u =>
+            if (u.isDefined) {
+              BadRequest(Json.toJson(Map("error" -> "user already registered")))
+            } else {
+              val userID = User.createUser(req.firstname,req.lastname,req.username,req.email,req.password,req.phonenumber)
+              val sessionID = Session.createNewSession(udid.get,userID)
+              Ok(Json.toJson(Map("sessionID" -> sessionID)))
+            }
+        }
+
+
+      }.getOrElse(
+          Future.successful(
+            BadRequest(Json.toJson(Map("error" -> "invalid json")))
+          )
+        )
+    } else {
+      Future.successful(
+        BadRequest(Json.toJson(Map("error" -> "missing udid")))
+      )
+    }
+  }
+
+
+  /**
+   * The login-function is used to authenticate an already created user and sending a sessionToken.
+   * The function requires a JSONObject with following keys:
+   * username, password
+   *
+   * @return
+   */
+  def login = Action.async(parse.json) { implicit request =>
+    val udid: Option[String] = request.headers.get("udid")
+    if(udid.isDefined) {
+      request.body.validate[UserLoginRequest].map {
+        logInRequest =>
+
+
+          val username = logInRequest.username
+          val password = logInRequest.password
+
+          val md5 = java.security.MessageDigest.getInstance("SHA-256")
+          val pwHex: String = (new HexBinaryAdapter()).marshal(md5.digest(password.getBytes()))
+
+          userCollection.find(Json.obj("username" -> username, "password" -> pwHex)).one[User].map {
+            u =>
+              if (u.isDefined) {
+                val sessionID = models.Session.createNewSession(udid.get, u.get.userID)
+                Ok(Json.toJson(Map("sessionID" -> sessionID)))
+              } else {
+                BadRequest(Json.toJson(Map("error" -> "username or password wrong")))
+              }
+          }
+      }.getOrElse (
+        Future.successful(
+          BadRequest(Json.toJson(Map("error" -> "invalid json")))
+        )
+      )
+    } else {
+      Future.successful(
+        BadRequest(Json.toJson(Map("error" -> "missing udid")))
+      )
+    }
+  }
+
+  /**
+   * The logout-function  is used to log out users. The previous session is set to be invalid.
+   * @return
+   */
+  def logout = Authenticated.async { ar =>
+    Session.setSessionInvalid(ar.user.userID,ar.request.headers.get("udid").get).map{ success =>
+      if(success){
+        Ok(Json.toJson(Map("status" -> "logged out")))
+      }else {
+        BadRequest(Json.toJson(Map("error" -> "could not log out")))
+      }
+    }
+  }
+
+
+
+  /*
+   * Simulates and "or"-request to mongodb
+   */
+  def usersFind(firstname:String, lastname:String) = Action.async {
+
+    val firstNameQuery = Json.obj("firstname" -> firstname)
+    val lastNameQuery = Json.obj("lastname" -> lastname)
+
+    val queryArray = Json.arr(firstNameQuery,lastNameQuery)
+
+    val userCursor = userCollection.find(Json.obj("$or" -> queryArray)).cursor[User]
+
+    val futureUsers:Future[List[User]] = userCursor.collect[List]()
+
+    futureUsers.map{ users =>
+      Ok(Json.toJson(users))
+    }
+  }
+
+}

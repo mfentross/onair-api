@@ -1,0 +1,10 @@
+@main("Viewer Text") {
+    <script type="text/javascript">
+
+    var ws = new WebSocket("ws://localhost:9000@routes.Application.pinger");
+    ws.onmessage = function( message ) { console.log( message ); $("body").append("<div>" + message.data + "</div>"); };
+    ws.onopen = function() {
+        ws.send("moin");
+    };
+    </script>
+}

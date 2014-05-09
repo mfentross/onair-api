@@ -1,0 +1,37 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET         /                         controllers.Application.index
+
+# Identification
+POST        /identify/login           controllers.Identification.login
+POST        /identify/register        controllers.Identification.register
+GET         /identify/logout          controllers.Identification.logout
+
+# Users
+GET         /users/me                 controllers.Identification.getMe
+
+
+# Video
+GET         /ws/broadcast             controllers.Application.receive
+GET         /ws/view                  controllers.Application.send
+
+GET         /view                     controllers.Application.view
+GET         /broadcast                controllers.Application.broadcast
+
+# Text
+GET         /ws/pinger                controllers.Application.pinger
+GET         /ws/client                controllers.Application.pingSender
+GET         /viewText                 controllers.Application.viewText
+GET         /client                   controllers.Application.viewTextSender
+
+# TokSession
+POST        /session/create           controllers.SessionHandler.create
+
+# Stream
+GET         /stream/:sID/chat         controllers.Stream.chat(sID: String)
+
+# Map static resources from the /public folder to the /assets URL path
+GET         /assets/*file             controllers.Assets.at(path="/public", file)
