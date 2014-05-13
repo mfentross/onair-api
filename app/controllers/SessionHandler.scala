@@ -6,6 +6,7 @@ import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits._
 import models.StreamRequest
 import scala.concurrent.Future
+import play.api.libs.json
 
 /**
  * Copyright: AppBuddy GmbH
@@ -20,17 +21,21 @@ object SessionHandler extends Controller {
    *
    * @return
    */
-  def create = Authenticated.async(parse.json) { ar =>
+  def create = Authenticated(parse.json) { ar =>
     ar.request.body.validate[StreamRequest].map {
       streamRequest =>
-        models.Stream.create(streamRequest, ar.user).map {
-          case s: Some[TokSession] => Ok(Json.toJson(s.get))
-          case None => {
-            val errorMap = Map("error" -> "Could not create session")
-            InternalServerError(Json.toJson(errorMap))
-          }
+        val ts: Option[TokSession] = models.Stream.create(streamRequest, ar.user)
+        if(ts.isDefined){
+          Ok(Json.toJson(ts))
+        }else{
+          BadRequest(Json.toJson(Map("error" -> "could not create session")))
         }
-    }.getOrElse(Future.successful(BadRequest(Json.toJson(Map("error" -> "invalid json")))))
+    }.getOrElse((BadRequest(Json.toJson(Map("error" -> "invalid json")))))
+  }
+
+  def testHeader = Action { implicit request =>
+    println(request.headers.toString())
+    Ok
   }
 
 }

@@ -46,8 +46,6 @@ object Stream extends Controller {
       // handle messages
       val in = Iteratee.foreach[JsValue] { event =>
 
-//        println("received: " + (event \ "message").toString())
-
         // GET USER
         val sID = request.headers.get("sessionID")
         val udid = request.headers.get("udid")
@@ -59,28 +57,25 @@ object Stream extends Controller {
 
             redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
 
-//            broadcastMap.get(streamID).get._2.push(Json.toJson(message))
           }
         }
         else{
           Logger.error("Invalid HTTP header")
         }
-//        println("received event")
-//        if((event \ "do").toString == """"get number of appointments"""") {
-//          //        println("sending")
-//          val count: Long = Cache.getOrElse[Long]("requests_" + realtor) {
-//            //          println("retrieving appointment request length")
-//            AppointmentRequest.listForRealtor(realtor).length
-//          }
-//
-//          //        println("about to send appointment request length")
-//          //        println("count: " + count)
-//
-//          broadcastMap.get(realtor).get._2.push(Json.toJson(Map("count" -> count)))
 
       }
 
       (in, broadcastMap.get(streamID).get._1)
+  }
+
+  /**
+   * load all active streams
+   * @return
+   */
+  def loadAll = Action.async { ar =>
+    models.Stream.loadAll.map { list =>
+      Ok(Json.toJson(list))
+    }
   }
 
 }

@@ -1,37 +1,25 @@
 package models.opentok
 
-
-import models._
-import scala.xml.{NodeSeq, Elem}
-import play.api.libs.concurrent.Execution.Implicits._
-import scalax.io.Resource
-import play.api.libs.concurrent.Akka
-import play.api.Play.current
-import scala.concurrent.duration._
-
-import scala.concurrent.Future
-import play.api.libs.ws.WS
 import org.joda.time.DateTime
+import com.opentok.api.OpenTokSDK
+import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.Json
-import org.joda.time.format.DateTimeFormat
-import java.util.Locale
-import reactivemongo.api._
-import play.modules.reactivemongo.json.collection.JSONCollection
-import play.modules.reactivemongo._
-import play.api.Logger
+import models.Database
 import reactivemongo.core.commands.LastError
-
+import scala.concurrent.Future
 
 /**
  * Copyright: AppBuddy GmbH
  * User: maltefentross
- * Date: 10.02.14
- * Time: 16:58
+ * Date: 13.05.14
+ * Time: 11:48
  */
-
-case class TokSession(sessionID: String, creationDate: DateTime)
+case class TokSession(streamID: String, sessionID: String, token: String, creationDate: DateTime)
 
 object TokSession extends TokConnection {
+
+  val sdk: OpenTokSDK = new OpenTokSDK(APIKEY, APISECRET)
+  implicit val tokSessionFormat = Json.format[TokSession]
 
   /**
    * saves tok session to db
@@ -52,66 +40,27 @@ object TokSession extends TokConnection {
   }
 
   /**
+   * generate a tok session
    *
-   * Generate TokSession with no direction to user
-   *
-   * TODO: add time out
-   *
+   * @param streamID
    * @param p2p
    * @return
    */
-  def generate(p2p: Boolean): Future[Option[TokSession]] = {
+  def generate(streamID: String, p2p: Boolean): Option[TokSession] = {
 
-    val url = restURI + "/session/create"
+    val session = sdk.create_session()
+    val token = generateToken(session.getSessionId)
 
-    val strP2P = p2p match {
-      case true    => "enabled"
-      case false   => "disabled"
-    }
-
-    val message = "p2p.preferences=" + strP2P
-
-    WS.url(url).withHeaders(httpHeaders).post(message).map { response =>
-//      println(response.xml)
-      if(response.status == 200) {
-        val xml: NodeSeq = response.xml
-
-
-        val sessionID = xml \\ "sessions" \\ "Session" \\ "session_id" text
-        val create = xml \\ "sessions" \\ "Session" \\ "create_dt" text
-
-        /**
-         * because opentok gives us a date string, we need to parse it to joda datetime
-         */
-        val formatter = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss z yyyy").withLocale(Locale.US)
-//        println(new DateTime().toString(formatter))
-
-//        println("will return session with date: " + DateTime.parse(new DateTime(), formatter))
-
-        val session = TokSession(sessionID, formatter.parseDateTime(create))
-
-        // save to db
-        save(session)
-
-        Option(session)
-
-      }else{
-
-        Logger.error("Could not create session because of response status " + response.status + " body: " + response.body)
-
-        // for developing
-//        save(
-//          TokSession(
-//            "testIDAusScript", new DateTime()
-//          )
-//        )
-
-        None
-      }
-
-    }
+    Option(TokSession(streamID, session.getSessionId, token, new DateTime()))
   }
 
-  implicit val tokSessionFormat = Json.format[TokSession]
+  /**
+   * generate token -> also for spectators
+   * FIXME: really for spectators?
+   *
+   * @param sessionID
+   * @return
+   */
+  def generateToken(sessionID: String): String = sdk.generate_token(sessionID)
 
 }

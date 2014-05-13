@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter
 import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import reactivemongo.api.Cursor
 
 /**
  * Copyright: AppBuddy GmbH
@@ -36,19 +37,18 @@ object Stream {
    * @param sr
    * @param user
    */
-  def create(sr: StreamRequest, user: User): Future[Option[TokSession]] = {
-    TokSession.generate(true).map {
+  def create(sr: StreamRequest, user: User): Option[TokSession] = {
+    TokSession.generate(user.userID, true).map {
       case s: TokSession => {
         // has moment id
         val sha = java.security.MessageDigest.getInstance("SHA-256")
         val hashable: String = sr.title + System.currentTimeMillis()
         val streamID: String = (new HexBinaryAdapter()).marshal(sha.digest(hashable.getBytes()))
 
-        val stream = Stream(streamID, user.userID, sr.title, sr.descriptionText, sr.geoLocation, s.get, true)
+        val stream = Stream(streamID, user.userID, sr.title, sr.descriptionText, sr.geoLocation, s, true)
         save(stream)
         s
       }
-      case None => None
     }
   }
 
@@ -60,6 +60,12 @@ object Stream {
     Database.streamCollection.insert(stream).map { lastError =>
       Logger.debug(s"Session successfully inserted with lastError: $lastError")
     }
+  }
+
+  def loadAll: Future[Seq[Stream]] = {
+    val cursor:Cursor[Stream] = Database.streamCollection.find(Json.obj("running" -> true)).cursor[Stream]
+
+    cursor.collect[List]()
   }
 
 }

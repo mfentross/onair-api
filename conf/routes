@@ -32,6 +32,10 @@ POST        /session/create           controllers.SessionHandler.create
 
 # Stream
 GET         /stream/:sID/chat         controllers.Stream.chat(sID: String)
+GET         /stream/all               controllers.Stream.loadAll
+
+# Testing
+POST        /test/headers             controllers.SessionHandler.testHeader
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file             controllers.Assets.at(path="/public", file)
