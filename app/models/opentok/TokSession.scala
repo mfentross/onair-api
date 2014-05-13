@@ -7,6 +7,7 @@ import play.api.libs.json.Json
 import models.Database
 import reactivemongo.core.commands.LastError
 import scala.concurrent.Future
+import com.opentok.api.constants.SessionProperties
 
 /**
  * Copyright: AppBuddy GmbH
@@ -48,6 +49,10 @@ object TokSession extends TokConnection {
    */
   def generate(streamID: String, p2p: Boolean): Option[TokSession] = {
 
+    var sp: SessionProperties = new SessionProperties()
+    sp.p2p_preference = "enabled"
+
+//    val session = sdk.create_session(null, sp)
     val session = sdk.create_session()
     val token = generateToken(session.getSessionId)
 

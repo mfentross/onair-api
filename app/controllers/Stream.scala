@@ -14,6 +14,7 @@ import akka.actor._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
+import models.opentok.TokSession
 
 /**
  * Copyright: AppBuddy GmbH
@@ -37,11 +38,13 @@ object Stream extends Controller {
 
   def chat(streamID: String) = WebSocket.using[JsValue] { implicit request =>
     // create enumerator, if not existing
-      if(!broadcastMap.get(streamID).isDefined) {
-        println(System.currentTimeMillis())
-        println("creating websocket for stream " + streamID)
-        broadcastMap += streamID -> Concurrent.broadcast[JsValue]
-      }
+//      if(!broadcastMap.get(streamID).isDefined) {
+//        println(System.currentTimeMillis())
+//        println("creating websocket for stream " + streamID)
+//        broadcastMap += streamID -> Concurrent.broadcast[JsValue]
+//      }
+
+      println("getting for stream " + streamID)
 
       // handle messages
       val in = Iteratee.foreach[JsValue] { event =>
@@ -76,6 +79,27 @@ object Stream extends Controller {
     models.Stream.loadAll.map { list =>
       Ok(Json.toJson(list))
     }
+  }
+
+
+  /**
+   * handler to create session
+   *
+   * @return
+   */
+  def create = Authenticated(parse.json) { ar =>
+    ar.request.body.validate[StreamRequest].map {
+      streamRequest =>
+        val ts: Option[TokSession] = models.Stream.create(streamRequest, ar.user)
+        if(ts.isDefined){
+          println("creating websocket for stream " + ts.get.streamID)
+          broadcastMap += ts.get.streamID -> Concurrent.broadcast[JsValue]
+          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
+          Ok(Json.toJson(ts))
+        }else{
+          BadRequest(Json.toJson(Map("error" -> "could not create session")))
+        }
+    }.getOrElse((BadRequest(Json.toJson(Map("error" -> "invalid json")))))
   }
 
 }

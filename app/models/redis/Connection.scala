@@ -29,7 +29,7 @@ object Connection {
   akkaSystem.actorOf(Props(classOf[SubscribeActor], channels, patterns).withDispatcher("rediscala.rediscala-client-worker-dispatcher"))
 
   // init
-  redis.publish("stream-chat", "first")
+//  redis.publish("stream-chat", "first")
 
 }
 

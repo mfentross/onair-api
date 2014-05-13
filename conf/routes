@@ -28,11 +28,11 @@ GET         /viewText                 controllers.Application.viewText
 GET         /client                   controllers.Application.viewTextSender
 
 # TokSession
-POST        /session/create           controllers.SessionHandler.create
 
 # Stream
 GET         /stream/:sID/chat         controllers.Stream.chat(sID: String)
 GET         /stream/all               controllers.Stream.loadAll
+POST        /stream/create           controllers.Stream.create
 
 # Testing
 POST        /test/headers             controllers.SessionHandler.testHeader
