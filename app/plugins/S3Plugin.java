@@ -13,7 +13,7 @@ import play.Plugin;
 
 public class S3Plugin extends Plugin {
 
-    public static final String AWS_S3_BUCKET = "onair";
+    public static final String AWS_S3_BUCKET = "onair-app";
     public static final String AWS_ACCESS_KEY = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY = "aws.secretKey";
     private final Application application;

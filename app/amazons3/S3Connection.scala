@@ -10,7 +10,7 @@ import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3}
 object S3Connection {
 
   var amazonS3:AmazonS3Client = null
-  val s3Bucket:String = "joyssi"
+  val s3Bucket:String = "onair"
 
   def init() = {
 

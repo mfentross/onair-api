@@ -75,11 +75,15 @@ object Stream extends Controller {
    * load all active streams
    * @return
    */
-  def loadAll = Action.async { ar =>
-    models.Stream.loadAll.map { list =>
-      Ok(Json.toJson(list))
-    }
+  def loadAll = Authenticated.async { ar =>
+    models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
+      promise.map { list =>
+        Ok(Json.toJson(list))
+      }
+    )
   }
+
+
 
 
   /**
@@ -100,6 +104,14 @@ object Stream extends Controller {
           BadRequest(Json.toJson(Map("error" -> "could not create session")))
         }
     }.getOrElse((BadRequest(Json.toJson(Map("error" -> "invalid json")))))
+  }
+
+  def loadWithUser = Action.async { ar =>
+    models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
+      promise.map { list =>
+        Ok(Json.toJson(list))
+      }
+    )
   }
 
 }

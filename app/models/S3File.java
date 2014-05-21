@@ -31,10 +31,10 @@ public class S3File{
     }
 
 
-    private String bucket = "onair";
+    private String bucket = "onair-app";
     private String urlPrefix = "https://"+ bucket+ "." +"s3.amazonaws.com";
     public String name;
-    private String pathPrefix = "moments/attachments/";
+    private String pathPrefix = "image/";
 
     public String pathExtension;
 
@@ -53,7 +53,7 @@ public class S3File{
         }
 
         String fileUrl = urlPrefix + "/";
-        String actualFileName = pathPrefix + pathExtension + "/" + generatedPath + "/" + type + "/" + name;
+        String actualFileName = pathPrefix + pathExtension + "/" + generatedPath + "/" + type + "/" + name + ".png";
         if (S3Plugin.amazonS3 == null) {
             Logger.error("Could not save because amazonS3 was null");
             throw new RuntimeException("Could not save");
@@ -74,10 +74,11 @@ public class S3File{
 
     }
 
-    public void convert(String momentID) {
+    public String[] convert(String folderID) {
        long starttime = System.currentTimeMillis();
         BufferedImage bufferedImage = null;
         String type = "none";
+        String[] urls = new String[2]; // 2 formats
         try {
             bufferedImage = ImageIO.read(file);
             Logger.info("Able to fetch BufferedImage from file: "+file.getName());
@@ -98,7 +99,7 @@ public class S3File{
                         sideLength = 90;
                         break;
                     default:
-                        return;
+                        return null;
                 }
 
                 double scaleFactorX = sideLength/bufferedImage.getWidth();
@@ -121,8 +122,8 @@ public class S3File{
                 try {
                     ImageIO.write(after,"png",scaled);
                     String url = save(scaled, type);
-                    Moment.addAttachment(momentID, "image", type, url);
                     Logger.debug("Image has been written to file");
+                    urls[imgFormat.ordinal()] = url;
                     if(scaled.exists()) {
                         scaled.delete();
                     }
@@ -133,9 +134,11 @@ public class S3File{
                 Logger.debug("Scaling took "+duration+ " milliseconds");
 
             }
+            return urls;
+        }else{
+            return null;
         }
     }
-
 
 
     public void delete(String filename) {

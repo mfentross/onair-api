@@ -3,39 +3,43 @@
 # ~~~~
 
 # Home page
-GET         /                         controllers.Application.index
+GET         /                              controllers.Application.index
 
 # Identification
-POST        /identify/login           controllers.Identification.login
-POST        /identify/register        controllers.Identification.register
-GET         /identify/logout          controllers.Identification.logout
+POST        /identify/login                controllers.Identification.login
+POST        /identify/register             controllers.Identification.register
+GET         /identify/logout               controllers.Identification.logout
 
 # Users
-GET         /users/me                 controllers.Identification.getMe
+GET         /users/me                      controllers.Identification.getMe
 
 
 # Video
-GET         /ws/broadcast             controllers.Application.receive
-GET         /ws/view                  controllers.Application.send
+GET         /ws/broadcast                  controllers.Application.receive
+GET         /ws/view                       controllers.Application.send
 
-GET         /view                     controllers.Application.view
-GET         /broadcast                controllers.Application.broadcast
+GET         /view                          controllers.Application.view
+GET         /broadcast                     controllers.Application.broadcast
 
 # Text
-GET         /ws/pinger                controllers.Application.pinger
-GET         /ws/client                controllers.Application.pingSender
-GET         /viewText                 controllers.Application.viewText
-GET         /client                   controllers.Application.viewTextSender
+GET         /ws/pinger                     controllers.Application.pinger
+GET         /ws/client                     controllers.Application.pingSender
+GET         /viewText                      controllers.Application.viewText
+GET         /client                        controllers.Application.viewTextSender
+
+# Settings
+POST        /settings/avatar/upload        controllers.Settings.uploadAvatar
 
 # TokSession
 
 # Stream
-GET         /stream/:sID/chat         controllers.Stream.chat(sID: String)
-GET         /stream/all               controllers.Stream.loadAll
-POST        /stream/create           controllers.Stream.create
+GET         /stream/:sID/chat              controllers.Stream.chat(sID: String)
+GET         /stream/all                    controllers.Stream.loadAll
+POST        /stream/create                 controllers.Stream.create
 
 # Testing
-POST        /test/headers             controllers.SessionHandler.testHeader
+POST        /test/headers                  controllers.SessionHandler.testHeader
+GET         /test/streams                  controllers.Stream.loadWithUser
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file             controllers.Assets.at(path="/public", file)
+GET         /assets/*file                  controllers.Assets.at(path="/public", file)
