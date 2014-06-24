@@ -1,5 +1,7 @@
 package models.redis
 
+import play.api.Play
+
 /**
  * Copyright: AppBuddy GmbH
  * User: maltefentross
@@ -8,9 +10,10 @@ package models.redis
  */
 object RedisInterface {
 
-  val url: String = "pub-redis-10988.eu-west-1-1.2.ec2.garantiadata.com"
-  val port: Int  = 10988
-  val name: String = "onair_stream_chat"
-  val password: String = "4h3XsDF"
+  val url: String = Play.current.configuration.getString("redis.uri").getOrElse("")
+  val port: Int  = Play.current.configuration.getInt("redis.port").getOrElse(0)
+  val name: String = Play.current.configuration.getString("redis.name").getOrElse("")
+  val password: Option[String] = Play.current.configuration.getString("redis.password")
+  val db: Option[Int] = Play.current.configuration.getInt("redis.db")
 
 }

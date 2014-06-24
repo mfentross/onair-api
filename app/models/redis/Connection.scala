@@ -22,7 +22,7 @@ object Connection {
 
   implicit val akkaSystem = akka.actor.ActorSystem()
 //  val redis = RedisClient(RedisInterface.url, RedisInterface.port, Option(RedisInterface.password), None, RedisInterface.name)
-  val redis = RedisClient("im.app-buddy.de", 4598)
+  val redis = RedisClient(RedisInterface.url, RedisInterface.port, RedisInterface.password, RedisInterface.db, RedisInterface.name)
 
   val channels = Seq("stream-chat")
   val patterns = Nil
@@ -35,7 +35,7 @@ object Connection {
 
 class SubscribeActor(channels: Seq[String] = Nil, patterns: Seq[String] = Nil)
 //  extends RedisSubscriberActor(new InetSocketAddress(RedisInterface.url, RedisInterface.port), channels, patterns) {
-  extends RedisSubscriberActor(new InetSocketAddress("im.app-buddy.de", 4598), channels, patterns) {
+  extends RedisSubscriberActor(new InetSocketAddress(RedisInterface.url, RedisInterface.port), channels, patterns) {
 
   def onMessage(message: Message) {
 //    Logger.info("Received Message :)")
