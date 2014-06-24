@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   cache,
   "org.reactivemongo" %% "play2-reactivemongo" % "0.10.2",
   "com.amazonaws" % "aws-java-sdk" % "1.7.5",
+  "com.newrelic.agent.java" % "newrelic-agent" % "3.7.1",
   "com.etaty.rediscala" %% "rediscala" % "1.3",
   "com.opentok.api" % "opentok-java-sdk" % "[0.91.54,)"
 )
