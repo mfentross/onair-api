@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/OnAir -Dhttp.port=$PORT
+web: target/universal/stage/bin/onair -Dhttp.port=$PORT
