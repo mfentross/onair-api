@@ -1,2 +1,2 @@
-400:play.modules.reactivemongo.ReactiveMongoPlugin
+1100:play.modules.reactivemongo.ReactiveMongoPlugin
 1500:plugins.S3Plugin

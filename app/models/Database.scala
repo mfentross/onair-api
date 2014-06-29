@@ -52,6 +52,14 @@ object Database {
   def tokSessionCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("toksession")
 
   def streamCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("stream")
+
+  /**
+   * Collection to store follows
+   * @return
+   */
+  def followCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("follow")
+
+
 }
 
 

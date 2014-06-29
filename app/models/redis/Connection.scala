@@ -35,14 +35,17 @@ object Connection {
 
 class SubscribeActor(channels: Seq[String] = Nil, patterns: Seq[String] = Nil)
 //  extends RedisSubscriberActor(new InetSocketAddress(RedisInterface.url, RedisInterface.port), channels, patterns) {
-  extends RedisSubscriberActor(new InetSocketAddress(RedisInterface.url, RedisInterface.port), channels, patterns) {
+  extends RedisSubscriberActor(new InetSocketAddress(RedisInterface.url, RedisInterface.port), channels, patterns, RedisInterface.password) {
 
   def onMessage(message: Message) {
 //    Logger.info("Received Message :)")
-    println(s" message received: $message")
+//    println(s" message received: $message")
     val json = Json.parse(message.data)
     val streamID = (json \ "channelID").toString().replace("\"", "")
 //    println(streamID)
+
+    println("Actor received message")
+    println(s"Pushing to stream: $streamID")
 
     if(!controllers.Stream.broadcastMap.get(streamID).isDefined){
       Logger.error("Have to create websocket stream" + streamID)
@@ -57,4 +60,5 @@ class SubscribeActor(channels: Seq[String] = Nil, patterns: Seq[String] = Nil)
     Logger.info("Received Pattern Message :)")
     println(s"pattern message received: $pmessage")
   }
+
 }

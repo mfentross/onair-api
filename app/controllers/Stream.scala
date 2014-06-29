@@ -22,7 +22,7 @@ import models.opentok.TokSession
  * Date: 02.05.14
  * Time: 17:56
  */
-case class ChatMessage(user: User, message: String)
+case class ChatMessage(user: PublicUser, message: String)
 object ChatMessage {
   implicit val chatMessageFormat = Json.format[ChatMessage]
 }
@@ -36,7 +36,26 @@ object Stream extends Controller {
 
   val broadcastMap = mutable.Map[String, (Enumerator[JsValue], Channel[JsValue])] ()
 
+  /**
+   * FIXME: Still possible to keep in sync?
+   *
+   * @param streamID
+   * @return
+   */
+  def getBroadcastOrCreate(streamID: String): (Enumerator[JsValue], Channel[JsValue]) =
+    broadcastMap.contains(streamID) match {
+      case true => broadcastMap.get(streamID).get
+      case false => {
+        val b = Concurrent.broadcast[JsValue]
+        broadcastMap += streamID -> b
+        b
+      }
+    }
+
   def chat(streamID: String) = WebSocket.using[JsValue] { implicit request =>
+
+    // TODO: check if stream exists
+
     // create enumerator, if not existing
 //      if(!broadcastMap.get(streamID).isDefined) {
 //        println(System.currentTimeMillis())
@@ -44,7 +63,7 @@ object Stream extends Controller {
 //        broadcastMap += streamID -> Concurrent.broadcast[JsValue]
 //      }
 
-      println("getting for stream " + streamID)
+//      println("getting for stream " + streamID)
 
       // handle messages
       val in = Iteratee.foreach[JsValue] { event =>
@@ -54,21 +73,20 @@ object Stream extends Controller {
         val udid = request.headers.get("udid")
 
         if(udid.isDefined && sID.isDefined) {
-          models.Session.getUserBySessionAndUdid(sID.get, udid.get).map { user =>
+          models.Session.getUserBySessionAndUdidAsPublicUser(sID.get, udid.get).map { user =>
             val message = ChatMessage(user.get, (event \ "message").toString())
-            println(message)
+//            println(message)
 
             redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
 
           }
-        }
-        else{
+        } else {
           Logger.error("Invalid HTTP header")
         }
 
       }
 
-      (in, broadcastMap.get(streamID).get._1)
+      (in, getBroadcastOrCreate(streamID)._1)
   }
 
   /**

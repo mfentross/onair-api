@@ -29,7 +29,7 @@ object Authenticated extends ActionBuilder[AuthenticatedRequest] {
 
   }
 
-  protected def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]): Future[SimpleResult] = {
+  def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]): Future[Result] = {
     userFromRequest(request).flatMap {
       case None => {
         Logger.error("user not found")

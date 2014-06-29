@@ -12,6 +12,7 @@ GET         /identify/logout               controllers.Identification.logout
 
 # Users
 GET         /users/me                      controllers.Identification.getMe
+POST        /users/follow                  controllers.Users.follow
 
 
 # Video

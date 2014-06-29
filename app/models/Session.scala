@@ -77,6 +77,15 @@ object Session {
   implicit val sessionFormat = Json.format[Session]
   def sessionCollection: JSONCollection = Database.sessionCollection
 
+  /**
+   *
+   * Get user by session and UDID
+   *
+   * @param sessionID
+   * @param udid
+   * @tparam T
+   * @return
+   */
   def getUserBySessionAndUdid(sessionID : String, udid : String): Future[Option[User]] = {
     sessionCollection.
       find(Json.obj("sessionID" -> sessionID, "udid" -> udid)).
@@ -94,6 +103,36 @@ object Session {
           Future.successful(None)
         }
       }
+
+  }
+
+
+  /**
+   *
+   * Get user by session and UDID
+   *
+   * @param sessionID
+   * @param udid
+   * @tparam T
+   * @return
+   */
+  def getUserBySessionAndUdidAsPublicUser(sessionID : String, udid : String): Future[Option[PublicUser]] = {
+    sessionCollection.
+      find(Json.obj("sessionID" -> sessionID, "udid" -> udid)).
+      one[Session].flatMap {
+      case s: Some[Session] =>
+        //          Logger.error("session found with id: "+s.get.sessionID)
+        println("userID: "+s.get.userID)
+        // load user here
+        Database.userCollection.find(Json.obj("userID" -> s.get.userID)).one[PublicUser]
+
+      case a: Any => {
+        println(a)
+        println("session not found")
+        println((Json.obj("sessionID" -> sessionID, "udid" -> udid)).toString())
+        Future.successful(None)
+      }
+    }
 
   }
 
