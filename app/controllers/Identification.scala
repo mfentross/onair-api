@@ -122,7 +122,7 @@ object Identification extends Controller with MongoController {
 
 
   /*
-   * Simulates and "or"-request to mongodb
+   * Simulates an "or"-request to mongodb
    */
   def usersFind(firstname:String, lastname:String) = Action.async {
 

@@ -19,6 +19,21 @@ case class UserAccountRequest(firstname:String, lastname: String,username: Strin
 case class UserLoginRequest(username: String, password: String)
 case class UserSearchRequest(by:String, value:String)
 case class PublicUser(userID:String, username:String, avatar: Option[Avatar])
+case class SearchUserID(userID:String)
+case class SearchUserName(username:String)
+case class SearchName(name:String)
+
+object SearchUserID{
+  implicit val suIDFormat = Json.format[SearchUserID]
+}
+
+object SearchUserName{
+  implicit val sunFormat = Json.format[SearchUserName]
+}
+
+object SearchName{
+  implicit val snFormat = Json.format[SearchName]
+}
 
 object Avatar {
   implicit val avatarFormat = Json.format[Avatar]
@@ -81,6 +96,34 @@ object User {
     }
 
     user.userID
+  }
+
+  /**
+   * Searches the database for an existing user by his/her userID
+   * @param userID
+   * @return
+   */
+  def getPublicUserByID(userID:String) = {
+    userCollection.find(Json.obj("userID"->userID)).one[PublicUser]
+  }
+
+
+  /**
+   * Searches the database for an existing user by his/her username
+   * @param username
+   * @return
+   */
+  def getPublicUserByUsername(username:String) = {
+    userCollection.find(Json.obj("username"->username)).one[PublicUser]
+  }
+
+  /**
+   * Searches the database for an existing user by his/her name
+   * @param name
+   * @return
+   */
+  def getPublicUserByName(name:String) = {
+    userCollection.find(Json.obj("name"->name)).one[PublicUser]
   }
 
 
