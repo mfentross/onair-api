@@ -1,5 +1,7 @@
 package controllers
 
+import _root_.util.Coords
+
 import scala.collection.mutable
 import play.api.libs.iteratee.Concurrent.Channel
 import play.api._
@@ -130,6 +132,17 @@ object Stream extends Controller {
         Ok(Json.toJson(list))
       }
     )
+  }
+
+
+  def getWithinCoords = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[ViewCoordinates].map{ coords =>
+      val viewCase:Int = Coords.getViewCase()
+
+    }
+
+
+    Future.successful(Ok(""))
   }
 
 }

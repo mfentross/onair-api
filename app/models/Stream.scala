@@ -40,6 +40,12 @@ case class StreamWithUser(stream: Stream, user: PublicUser)
 
 case class StreamID(streamID:String)
 
+case class ViewCoordinates(pLong:Double, pLat:Double, qLong:Double, qLat:Double)
+
+object ViewCoordinates{
+  implicit val viewCoordsFormat = Json.format[ViewCoordinates]
+}
+
 object StreamID{
   implicit val streamIDFormat = Json.format[StreamID]
 }
