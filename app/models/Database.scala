@@ -23,11 +23,6 @@ object Database {
   def sessionCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("session")
 
   /**
-   * This collection holds all moments that have been created (and shared) by users.
-   */
-  def momentCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("moment")
-
-  /**
    * This collection holds a tag-value representing the tag-string and a count field for keeping track of how often this tag has been used.
    */
   def tagCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("tag")
@@ -40,12 +35,7 @@ object Database {
   /**
    * This collection keeps track of the tags that have been assigned to specific moments.
    */
-  def momenttagsCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("momenttag")
-
-  /**
-   * This collections keeps track of which user has read-access to which moments.
-   */
-  def sharedMomentsCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("sharedmoment")
+  def streamtagsCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("streamtag")
 
 
   // OnAir

@@ -38,8 +38,15 @@ case class StreamRequest(title: String, descriptionText: String, geoLocation: Op
  */
 case class StreamWithUser(stream: Stream, user: PublicUser)
 
-object Stream {
+case class StreamID(streamID:String)
 
+object StreamID{
+  implicit val streamIDFormat = Json.format[StreamID]
+}
+
+
+object Stream {
+  val streamCollection = Database.streamCollection
   implicit val streamFormat = Json.format[Stream]
 
   /**
@@ -76,6 +83,12 @@ object Stream {
   def loadAll: Future[Seq[Stream]] = {
     val cursor:Cursor[Stream] = Database.streamCollection.find(Json.obj("running" -> true)).cursor[Stream]
 
+    cursor.collect[List]()
+  }
+
+
+  def getStreamByStreamID(streamID:String) = {
+    val cursor:Cursor[Stream] = streamCollection.find(Json.obj("streamID"->streamID)).cursor[Stream]
     cursor.collect[List]()
   }
 

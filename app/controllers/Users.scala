@@ -1,9 +1,10 @@
 package controllers
 
-import models.{Follow, FollowRequest}
+import models._
 import play.api.mvc._
 import play.api.libs.json.Json
 import models.statics.Notifier
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Execution.Implicits._
@@ -41,4 +42,46 @@ object Users extends Controller {
     }.getOrElse(BadRequest(Notifier.jsonInvalid))
   }
 
+
+  /**
+   *
+   * @return
+   */
+  def findUserByID = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[SearchUserID].map{
+      search =>
+        User.getPublicUserByID(search.userID).map{ user =>
+          if(user.isDefined) Ok(Json.toJson(user.get)) else BadRequest(Json.toJson(Map("error"->"could not find user")))
+        }
+    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+  }
+
+  def findUserByUsername = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[SearchUserName].map{
+      search =>
+        User.getPublicUserByUsername(search.username).map{ user =>
+          if(user.isDefined) Ok(Json.toJson(user.get)) else BadRequest(Json.toJson(Map("error"->"could not find user")))
+        }
+    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+  }
+
+  def findUserByName = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[SearchName].map{
+      search =>
+        User.getPublicUserByName(search.name).map{ user =>
+          if(user.isDefined) Ok(Json.toJson(user.get)) else BadRequest(Json.toJson(Map("error"->"could not find user")))
+        }
+    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+  }
+
+  def findUserByStreamID = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[StreamID].map{ sID =>
+      models.Stream.loadWithUser(models.Stream.getStreamByStreamID(sID.streamID)).flatMap{
+        promise =>
+          promise.map{ streams =>
+            Ok(Json.toJson(streams(0).user))
+          }
+      }
+    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+  }
 }

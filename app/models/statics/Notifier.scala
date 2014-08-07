@@ -21,4 +21,6 @@ object Notifier {
    */
   lazy val jsonInvalid = Json.toJson(Map("error" -> "invalid json"))
 
+
+  //def jsonOutput(a: Any) = Json.toJson(Map("error" -> "no error", "response" -> Json.toJson(a) ))
 }

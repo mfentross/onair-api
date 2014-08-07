@@ -13,7 +13,10 @@ GET         /identify/logout               controllers.Identification.logout
 # Users
 GET         /users/me                      controllers.Identification.getMe
 POST        /users/follow                  controllers.Users.follow
-
+POST        /users/search/id               controllers.Users.findUserByID
+POST        /users/search/username         controllers.Users.findUserByUsername
+POST        /users/search/name             controllers.Users.findUserByName
+POST        /users/search/streamid         controllers.Users.findUserByStreamID
 
 # Video
 GET         /ws/broadcast                  controllers.Application.receive
