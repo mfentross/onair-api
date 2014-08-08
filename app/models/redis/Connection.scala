@@ -22,11 +22,11 @@ object Connection {
 
   implicit val akkaSystem = akka.actor.ActorSystem()
 //  val redis = RedisClient(RedisInterface.url, RedisInterface.port, Option(RedisInterface.password), None, RedisInterface.name)
-  val redis = RedisClient(RedisInterface.url, RedisInterface.port, RedisInterface.password, RedisInterface.db, RedisInterface.name)
+//  val redis = RedisClient(RedisInterface.url, RedisInterface.port, RedisInterface.password, RedisInterface.db, RedisInterface.name)
 
   val channels = Seq("stream-chat")
   val patterns = Nil
-  akkaSystem.actorOf(Props(classOf[SubscribeActor], channels, patterns).withDispatcher("rediscala.rediscala-client-worker-dispatcher"))
+//  akkaSystem.actorOf(Props(classOf[SubscribeActor], channels, patterns).withDispatcher("rediscala.rediscala-client-worker-dispatcher"))
 
   // init
 //  redis.publish("stream-chat", "first")
@@ -38,7 +38,8 @@ class SubscribeActor(channels: Seq[String] = Nil, patterns: Seq[String] = Nil)
   extends RedisSubscriberActor(new InetSocketAddress(RedisInterface.url, RedisInterface.port), channels, patterns, RedisInterface.password) {
 
   def onMessage(message: Message) {
-//    Logger.info("Received Message :)")
+    val m = message.data
+    Logger.info(s"Received Message: $m")
 //    println(s" message received: $message")
     val json = Json.parse(message.data)
     val streamID = (json \ "channelID").toString().replace("\"", "")

@@ -9,6 +9,7 @@ import scala.concurrent.Future
 import reactivemongo.api.Cursor
 import scala.collection.mutable.{ListBuffer, ArrayBuffer}
 import scala.collection.parallel.mutable
+import models.stream.StreamSession
 
 /**
  * Copyright: AppBuddy GmbH
@@ -17,7 +18,7 @@ import scala.collection.parallel.mutable
  * Time: 15:35
  */
 
-case class Stream(streamID: String, userID: String, title: String, descriptionText: String, geoLocation: Option[GeoLocation], tokSession: TokSession, running: Boolean)
+case class Stream(streamID: String, userID: String, title: String, descriptionText: String, geoLocation: Option[GeoLocation], session: StreamSession, running: Boolean)
 
 /**
  *
@@ -55,18 +56,20 @@ object Stream {
    * @param sr
    * @param user
    */
-  def create(sr: StreamRequest, user: User): Option[TokSession] = {
-    TokSession.generate(user.userID, false).map {
-      case s: TokSession => {
-        // has moment id
-        val sha = java.security.MessageDigest.getInstance("SHA-256")
-        val hashable: String = sr.title + System.currentTimeMillis()
-        val streamID: String = (new HexBinaryAdapter()).marshal(sha.digest(hashable.getBytes()))
+  def create(sr: StreamRequest, user: User): Future[Option[StreamSession]] = {
+    val sha = java.security.MessageDigest.getInstance("SHA-256")
+    val hashable: String = sr.title + System.currentTimeMillis()
+    val streamID: String = (new HexBinaryAdapter()).marshal(sha.digest(hashable.getBytes()))
 
-        val stream = Stream(streamID, user.userID, sr.title, sr.descriptionText, sr.geoLocation, s, true)
+    StreamSession.generate(user.userID, false).map { sess =>
+
+      if(sess.isDefined) {
+
+        val stream = Stream(streamID, user.userID, sr.title, sr.descriptionText, sr.geoLocation, sess.get, true)
         save(stream)
-        s
-      }
+        sess
+      } else None
+
     }
   }
 
