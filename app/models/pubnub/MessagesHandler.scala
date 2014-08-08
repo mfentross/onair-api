@@ -1,5 +1,11 @@
 package models.pubnub
 
+import play.api.Logger
+import play.api.libs.json.{JsValue, Json}
+import play.api.libs.iteratee.Concurrent
+import controllers.{ChannelChatMessage, ChatMessage}
+import org.json.JSONObject
+
 /**
  * Copyright: AppBuddy GmbH
  * User: maltefentross
@@ -7,5 +13,29 @@ package models.pubnub
  * Time: 19:32
  */
 object MessagesHandler {
+
+  def received(message: Object) = {
+    println("Actor received message")
+    //    println(s" message received: $message")
+    val json = Json.parse(message.toString)
+    val streamID = (json \ "channelID").toString.replace("\"", "")
+        println(streamID)
+
+    val test = (json \ "chatMessage").toString()
+
+//    println(s"cm: $test")
+
+    println(s"Pushing to stream: $streamID")
+
+//    controllers.Stream.broadcastMap.get(streamID).get._2.push((json \ "chatMessage"))
+    controllers.Stream.getBroadcastOrCreate(streamID)._2.push((json \ "chatMessage"))
+  }
+
+  def send(message: ChannelChatMessage) = {
+//    println("sending message")
+    val obj = new JSONObject(Json.toJson(message).toString)
+//    println(obj)
+    PNInit.sendMessage(obj)
+  }
 
 }

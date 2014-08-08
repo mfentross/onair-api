@@ -1,13 +1,12 @@
 package models.opentok
 
 import org.joda.time.DateTime
-import com.opentok.api.OpenTokSDK
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.Json
 import models.Database
 import reactivemongo.core.commands.LastError
 import scala.concurrent.Future
-import com.opentok.api.constants.SessionProperties
+import com.opentok._
 
 /**
  * Copyright: AppBuddy GmbH
@@ -19,7 +18,7 @@ case class TokSession(streamID: String, sessionID: String, token: String, creati
 
 object TokSession extends TokConnection {
 
-  val sdk: OpenTokSDK = new OpenTokSDK(APIKEY, APISECRET)
+  val sdk: OpenTok = new OpenTok(APIKEY, APISECRET)
   implicit val tokSessionFormat = Json.format[TokSession]
 
   /**
@@ -40,6 +39,24 @@ object TokSession extends TokConnection {
     Database.tokSessionCollection.find(Json.obj()).cursor[TokSession].collect[List]()
   }
 
+
+  /**
+   * start record and return archive id string
+   *
+   * @param sessionID
+   * @return
+   */
+  def startRecording(sessionID: String, name: String): String = sdk.startArchive(sessionID, name).getId
+
+
+  /**
+   * stop recording of stream
+   *
+   * @param archiveID
+   * @return
+   */
+  def stopRecording(archiveID: String) = sdk.stopArchive(archiveID)
+
   /**
    * generate a tok session
    *
@@ -49,12 +66,16 @@ object TokSession extends TokConnection {
    */
   def generate(streamID: String, p2p: Boolean): Option[TokSession] = {
 
-    var sp: SessionProperties = new SessionProperties()
-    sp.p2p_preference = "enabled"
+    val session: Session = p2p match {
+      case true => {
+                    sdk.createSession(new SessionProperties.Builder()
+                      .mediaMode(MediaMode.ROUTED)
+                      .build())
+                  }
+      case false => sdk.createSession()
+    }
 
-//    val session = sdk.create_session(null, sp)
-    val session = sdk.create_session()
-    val token = generateToken(session.getSessionId)
+    val token = generateToken(session)
 
     Option(TokSession(streamID, session.getSessionId, token, new DateTime()))
   }
@@ -63,9 +84,15 @@ object TokSession extends TokConnection {
    * generate token -> also for spectators
    * FIXME: really for spectators?
    *
-   * @param sessionID
+   * @param
    * @return
    */
-  def generateToken(sessionID: String): String = sdk.generate_token(sessionID)
+  def generateToken(session: com.opentok.Session): String = {
+    session.generateToken(new TokenOptions.Builder()
+      .role(Role.PUBLISHER)
+      .expireTime((System.currentTimeMillis() / 1000L) + (7 * 24 * 60 * 60)) // in one week
+//      .data("name=Johnny")
+      .build());
+  }
 
 }

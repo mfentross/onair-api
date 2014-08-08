@@ -12,7 +12,7 @@ object S3Connection {
   var amazonS3:AmazonS3Client = null
   val s3Bucket:String = "onair"
 
-  def init() = {
+  def init = {
 
     val accessKey:Option[String] = Play.current.configuration.getString("aws.accessKeyId")
     val secretKey:Option[String ]= Play.current.configuration.getString("aws.secretKey")
