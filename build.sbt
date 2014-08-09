@@ -24,5 +24,7 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk" % "1.7.5",
   "com.newrelic.agent.java" % "newrelic-agent" % "3.7.1",
   "com.etaty.rediscala" %% "rediscala" % "1.3.1",
-  "com.opentok.api" % "opentok-java-sdk" % "[0.91.54,)"
+  "com.tokbox" % "opentok-server-sdk" % "2.2.2",
+  //"com.opentok.api" % "opentok-java-sdk" % "[0.91.54,)",
+  "com.pubnub" % "pubnub" % "3.6.1"
 )

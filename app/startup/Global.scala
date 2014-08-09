@@ -2,6 +2,7 @@ package startup
 
 import play.api._
 import amazons3.S3Connection
+import models.pubnub.PNInit
 
 /**
  * Created by AppBuddy on 02.04.2014.
@@ -9,7 +10,8 @@ import amazons3.S3Connection
 object Global extends GlobalSettings{
 
     override def onStart(app:Application){
-        Logger.debug("ONSTART CALLED!!!!!!!!!!!!!!!!!!!!!!")
-        S3Connection.init()
+      S3Connection.init
+      // init push connection
+      PNInit.doInit()
     }
 }

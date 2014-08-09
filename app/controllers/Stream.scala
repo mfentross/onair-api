@@ -17,6 +17,7 @@ import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import models.opentok.TokSession
+import models.pubnub.MessagesHandler
 
 /**
  * Copyright: AppBuddy GmbH
@@ -76,11 +77,19 @@ object Stream extends Controller {
 
         if(udid.isDefined && sID.isDefined) {
           models.Session.getUserBySessionAndUdidAsPublicUser(sID.get, udid.get).map { user =>
-            val message = ChatMessage(user.get, (event \ "message").toString())
+//            println("about to send message")
+//            val message = ChatMessage(user.get, "test")
+            // DANGER: next two lines because of error in SocketRocket that escapes "Message"
+            val m = (event \ "message").toString()
+            val unescapedMessage = m.substring(1, m.length - 1)
+
+            val message = ChatMessage(user.get, unescapedMessage)
+            print(message)
+            val cm = ChannelChatMessage(streamID, message)
 //            println(message)
 
-            redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
-
+//            redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
+            MessagesHandler.send(cm)
           }
         } else {
           Logger.error("Invalid HTTP header")
@@ -88,7 +97,8 @@ object Stream extends Controller {
 
       }
 
-      (in, getBroadcastOrCreate(streamID)._1)
+//      (in, getBroadcastOrCreate(streamID)._1)
+      (in, broadcastMap.get(streamID).get._1)
   }
 
   /**
@@ -111,19 +121,19 @@ object Stream extends Controller {
    *
    * @return
    */
-  def create = Authenticated(parse.json) { ar =>
+  def create = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[StreamRequest].map {
       streamRequest =>
-        val ts: Option[TokSession] = models.Stream.create(streamRequest, ar.user)
-        if(ts.isDefined){
-          println("creating websocket for stream " + ts.get.streamID)
-          broadcastMap += ts.get.streamID -> Concurrent.broadcast[JsValue]
-          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
-          Ok(Json.toJson(ts))
-        }else{
-          BadRequest(Json.toJson(Map("error" -> "could not create session")))
+        models.Stream.create(streamRequest, ar.user).map { sess =>
+          if(sess.isDefined) {
+            println("creating websocket for stream " + sess.get.streamID)
+            broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
+            //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
+            Ok(Json.toJson(sess))
+          } else
+            BadRequest(Json.toJson(Map("error" -> "could not create session")))
         }
-    }.getOrElse((BadRequest(Json.toJson(Map("error" -> "invalid json")))))
+    }.getOrElse(Future.successful(BadRequest(Json.toJson(Map("error" -> "invalid json")))))
   }
 
   def loadWithUser = Action.async { ar =>
