@@ -1,5 +1,7 @@
 package util
 
+import models.GeoLocation
+
 /**
  * Created by Rene on 07.08.2014.
  */
@@ -27,65 +29,112 @@ object Coords{
   }
 
   def calcLatDist(pLat:Double, qLat:Double, pRegion:Int, qRegion:Int):Double = {
-
+      1.1
   }
 
-  def getToleranceCoords(pLong:Double,pLat:Double, qLong:Double, qLat:Double):(Double, Double) = {
+  /**
+   * This method returns transformed GeoLocations. It gets input in form of two GeoLocations, which
+   * then are calculated in order to check their constellation. From there on their distance is calculated in
+   * respect to the former calculated constellation (different equations needed). In the end the distance between
+   * the longitude and latitude values are computed together with a given tolerance-value. Then new GeoLocations
+   * from the old ones are generated and returned.
+   *
+   * @param p     GeoLocation of the upper-left corner of the map
+   * @param q     GeoLocation of the bottom-right corner of the map
+   *
+   * @return      A tuple of GeoLocations transformed with a tolerance from p and q in the order (new_p, new_q)
+   */
+  def getToleranceCoords(p:GeoLocation, q:GeoLocation):(GeoLocation, GeoLocation) = {
+    val pLong:Double = p.longitude
+    val pLat:Double = p.latitude
+    val qLong:Double = q.longitude
+    val qLat:Double = q.latitude
+
     val pRegion = getCoordRegion(pLong, pLat)
     val qRegion = getCoordRegion(qLong, qLat)
+
+
 
     if(pRegion == NorthernEast){
       if(qRegion == NorthernEast){
         //Same region
         lazy val longDist = qLong-pLong
         lazy val latDist = pLat-qLat
-        (longDist*tolerance, latDist*tolerance)
-
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la,None))
       } else if(qRegion == NorthernWest){
         lazy val longDist = (360+qLong-pLong)
         lazy val latDist = pLat-qLat
-        (longDist*tolerance, latDist*tolerance)
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None), GeoLocation(qLong+lo, qLat-la, None))
       }else if(qRegion == SouthernWest){
-        lazy val longDist = (180-pLong)+(180+qLong)
+        lazy val longDist = (360+qLong-pLong)
         lazy val latDist = pLat-qLat
-      } else if(qRegion == SouthernEast){
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+      } else {
         lazy val longDist = qLong-pLong
         lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
       }
 
     } else if(pRegion == NorthernWest){
       if(qRegion == NorthernEast){
-
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
       } else if(qRegion == NorthernWest){
         //Same region
-      }else if(qRegion == SouthernWest){
-
-      } else if(qRegion == SouthernEast){
-
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+      } else if(qRegion == SouthernWest){
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+      } else{
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
       }
     } else if(pRegion == SouthernWest){
-      if(qRegion == NorthernEast){
-
-      } else if(qRegion == NorthernWest){
-
-      }else if(qRegion == SouthernWest){
+        if(qRegion == SouthernWest){
         //Same region
-      } else if(qRegion == SouthernEast){
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+
+      } else {
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
 
       }
-    } else if(pRegion == SouthernEast){
-      if(qRegion == NorthernEast){
-
-      } else if(qRegion == NorthernWest){
-
-      }else if(qRegion == SouthernWest){
-
-      } else if(qRegion == SouthernEast){
+    } else {
+      if(qRegion == SouthernWest){
+        lazy val longDist = (360+qLong-pLong)
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+      } else {
         //Same region
+        lazy val longDist = qLong-pLong
+        lazy val latDist = pLat-qLat
+        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
+        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
       }
     }
+  }
 
-    (2.134, 3.456)
+  def getToleranceCoords(pLong:Double, pLat:Double, qLong:Double, qLat:Double):(GeoLocation, GeoLocation) = {
+    getToleranceCoords(GeoLocation(pLong, pLat, None), GeoLocation(qLong, qLat, None))
   }
 
   /**

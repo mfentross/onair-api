@@ -147,8 +147,8 @@ object Stream extends Controller {
 
   def getWithinCoords = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[ViewCoordinates].map{ coords =>
-      val viewCase:Int = Coords.getViewCase()
-
+      val (p,q) = Coords.getToleranceCoords(coords.p, coords.q)
+      //p and q are the new positions with calculated tolerance, need to search inside their bounds in db
     }
 
 
