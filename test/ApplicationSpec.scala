@@ -9,6 +9,7 @@ import play.api.test.Helpers._
 
 import reactivemongo.core.commands.LastError
 import scala.concurrent.ExecutionContext.Implicits.global
+import util.Coords
 
 /**
  * Add your spec here.
@@ -33,23 +34,125 @@ class ApplicationSpec extends Specification {
     }
   }
 
-  "Session" should {
-    "Save function returns Future[Lasterror]" in new WithApplication{
-      val datetime = new DateTime()
-      val sessionID = "TestID"
-      val session = TokSession(sessionID, datetime)
+//  "Session" should {
+//    "Save function returns Future[Lasterror]" in new WithApplication{
+//      val datetime = new DateTime()
+//      val sessionID = "TestID"
+//      val session = TokSession(sessionID, datetime)
+//
+//      TokSession.save(session).map { result =>
+//        result must equalTo(LastError)
+//      }
+//    }
+//
+//    "Session list must not be empty" in new WithApplication() {
+//      TokSession.loadAll.map { list =>
+//        list must have
+//      }
+//    }
+//
+//  }
 
-      TokSession.save(session).map { result =>
-        result must equalTo(LastError)
-      }
+  "Coords" should {
+    //From North-West
+    "getToleranceCoords with North-West -> North-West" in {
+      val (p,q) = Coords.getToleranceCoords(-15.0, 25.0, -5.0, 15.0)
+      p.longitude must equalTo(-16.0)
+      p.latitude must equalTo(26.0)
+      q.longitude must equalTo(-4.0)
+      q.latitude must equalTo(14.0)
     }
 
-    "Session list must not be empty" in new WithApplication() {
-      TokSession.loadAll.map { list =>
-        list must have
-      }
+    "getToleranceCoords with North-West -> North-East" in {
+      val (p,q) = Coords.getToleranceCoords(-5.0, 5.0, 5.0, 2.0)
+      p.longitude must equalTo(-6)
+      p.latitude must equalTo(5.3)
+      q.longitude must equalTo(6)
+      q.latitude must equalTo(1.7)
     }
 
+    "getToleranceCoords with North-West -> South-West" in {
+      val (p,q) = Coords.getToleranceCoords(-15.0, 5.0, -5.0, -5.0)
+      p.longitude must equalTo(-16.0)
+      p.latitude must equalTo(6.0)
+      q.longitude must equalTo(-4.0)
+      q.latitude must equalTo(-6.0)
+    }
+
+    "getToleranceCoords with North-West -> South-East" in {
+      val (p,q) = Coords.getToleranceCoords(-5.0, 5.0, 5.0, -5.0)
+      p.longitude must equalTo(-6.0)
+      p.latitude must equalTo(6.0)
+      q.longitude must equalTo(6.0)
+      q.latitude must equalTo(-6.0)
+    }
+
+    //From North-East
+    "getToleranceCoords with North-East -> North-East" in {
+      val (p,q) = Coords.getToleranceCoords(5.0, 35.0, 15.0, 25.0)
+      p.longitude must equalTo(4.0)
+      p.latitude must equalTo(36.0)
+      q.longitude must equalTo(16.0)
+      q.latitude must equalTo(24.0)
+    }
+
+    "getToleranceCoords with North-East -> North-West" in {
+      val (p,q) = Coords.getToleranceCoords(175.0, 35.0, -175.0, 25.0)
+      p.longitude must equalTo(174.0)
+      p.latitude must equalTo(36.0)
+      q.longitude must equalTo(-174.0)
+      q.latitude must equalTo(24.0)
+    }
+
+    "getToleranceCoords with North-East -> South-West" in {
+      val (p,q) = Coords.getToleranceCoords(175.0, 5.0, -175.0, -5.0)
+      p.longitude must equalTo(174.0)
+      p.latitude must equalTo(6.0)
+      q.longitude must equalTo(-174.0)
+      q.latitude must equalTo(-6.0)
+    }
+
+    "getToleranceCoords with North-East -> South-East" in {
+      val (p,q) = Coords.getToleranceCoords(5.0, 5.0, 15.0, -5.0)
+      p.longitude must equalTo(4.0)
+      p.latitude must equalTo(6.0)
+      q.longitude must equalTo(16.0)
+      q.latitude must equalTo(-6.0)
+    }
+
+    //From South-West
+    "getToleranceCoords with South-West -> South-West" in {
+      val (p,q) = Coords.getToleranceCoords(-35.0, -35.0, -25.0, -45.0)
+      p.longitude must equalTo(-36.0)
+      p.latitude must equalTo(-34.0)
+      q.longitude must equalTo(-24.0)
+      q.latitude must equalTo(-46.0)
+    }
+
+    "getToleranceCoords with South-West -> South-East" in {
+      val (p,q) = Coords.getToleranceCoords(-5.0, -35.0, 5.0, -45.0)
+      p.longitude must equalTo(-6.0)
+      p.latitude must equalTo(-34.0)
+      q.longitude must equalTo(6.0)
+      q.latitude must equalTo(-46.0)
+    }
+
+    //From South-East
+    "getToleranceCoords with South-East -> South-East" in {
+      val (p,q) = Coords.getToleranceCoords(5.0, -15.0, 15.0, -25.0)
+      p.longitude must equalTo(4.0)
+      p.latitude must equalTo(-14.0)
+      q.longitude must equalTo(16.0)
+      q.latitude must equalTo(-26.0)
+    }
+
+    "getToleranceCoords with South-East -> South-West" in {
+      val (p,q) = Coords.getToleranceCoords(175.0, -5.0, -175.0, -15.0)
+      p.longitude must equalTo(174.0)
+      p.latitude must equalTo(-4.0)
+      q.longitude must equalTo(-174.0)
+      q.latitude must equalTo(-16.0)
+    }
   }
 
 }
