@@ -1,4 +1,5 @@
 import models.opentok.TokSession
+import models.User
 import org.joda.time.DateTime
 import org.specs2.mutable._
 import org.specs2.runner._
@@ -33,23 +34,41 @@ class ApplicationSpec extends Specification {
     }
   }
 
-  "Session" should {
-    "Save function returns Future[Lasterror]" in new WithApplication{
-      val datetime = new DateTime()
-      val sessionID = "TestID"
-      val session = TokSession(sessionID, datetime)
+//  "Session" should {
+//    "Save function returns Future[Lasterror]" in new WithApplication{
+//      val datetime = new DateTime()
+//      val sessionID = "TestID"
+//      val session = TokSession(sessionID, datetime)
+//
+//      TokSession.save(session).map { result =>
+//        result must equalTo(LastError)
+//      }
+//    }
+//
+//    "Session list must not be empty" in new WithApplication() {
+//      TokSession.loadAll.map { list =>
+//        list must have
+//      }
+//    }
+//
+//  }
 
-      TokSession.save(session).map { result =>
-        result must equalTo(LastError)
+  "User" should {
+    "Get public user by id must have firstname, lastname, id and username" in new WithApplication {
+
+      val userID = "AFB1BAF30A443B16B8D87B233D4D1ED2D75A02D42344A0B69F5F9CCA0E2FDC81"
+      User.getPublicUserByID(userID).map { user =>
+        if(user.isDefined) {
+          user.get.firstname must contain ("")
+          user.get.lastname must contain ("")
+          user.get.userID must contain ("")
+          user.get.username must contain ("")
+        } else {
+          user must equalTo(None)
+        }
       }
-    }
 
-    "Session list must not be empty" in new WithApplication() {
-      TokSession.loadAll.map { list =>
-        list must have
-      }
     }
-
   }
 
 }
