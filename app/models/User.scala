@@ -19,7 +19,7 @@ case class User(userID: String, firstname: String, lastname: String, username: S
 case class UserAccountRequest(firstname:String, lastname: String,username: String, email: Option[String], password: String, phonenumber: String)
 case class UserLoginRequest(username: String, password: String)
 case class UserSearchRequest(by:String, value:String)
-case class PublicUser(userID:String, username:String, avatar: Option[Avatar])
+case class PublicUser(userID:String, username:String, firstname: String, lastname: String, avatar: Option[Avatar])
 case class SearchUserID(userID:String)
 case class SearchUserName(username:String)
 case class SearchName(name:String)
