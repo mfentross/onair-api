@@ -21,6 +21,26 @@ object Coords{
   val tolerance = 0.1
 
 
+  /**
+   * Translates a given GeoLocation to positive longitude-values between 0 and 360.
+   *
+   * @param geo GeoLocation before translation.
+   * @return    GeoLocation after translation.
+   */
+  def translateLongitudePositive(geo:GeoLocation):GeoLocation = {
+    GeoLocation(geo.longitude+180, geo.latitude, geo.altitude)
+  }
+
+  /**
+   * Reverses a given GeoLocation's longitude-values back to a range from -180 to 180.
+   *
+   * @param geo GeoLocation before reversing.
+   * @return    GeoLocation after reversing.
+   */
+  def translateLogitudeNegative(geo:GeoLocation):GeoLocation = {
+    GeoLocation(geo.longitude-180, geo.latitude, geo.altitude)
+  }
+
   def calcLongDist(pLong:Double, qLong:Double, pRegion:Int, qRegion:Int):Double = {
     if((pRegion == NorthernEast ) || (pRegion == SouthernEast)){
       2.34
@@ -54,81 +74,85 @@ object Coords{
     val qRegion = getCoordRegion(qLong, qLat)
 
 
-
-    if(pRegion == NorthernEast){
-      if(qRegion == NorthernEast){
-        //Same region
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la,None))
-      } else if(qRegion == NorthernWest){
-        lazy val longDist = (360+qLong-pLong)
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None), GeoLocation(qLong+lo, qLat-la, None))
-      }else if(qRegion == SouthernWest){
-        lazy val longDist = (360+qLong-pLong)
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-      } else {
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-      }
-
-    } else if(pRegion == NorthernWest){
-      if(qRegion == NorthernEast){
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-      } else if(qRegion == NorthernWest){
-        //Same region
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-      } else if(qRegion == SouthernWest){
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-      } else{
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-      }
-    } else if(pRegion == SouthernWest){
-        if(qRegion == SouthernWest){
-        //Same region
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-
-      } else {
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
-
-      }
+    if(pRegion == -1 || qRegion == -1 ){
+      (GeoLocation(0,0, None),GeoLocation(0,0,None))
     } else {
-      if(qRegion == SouthernWest){
-        lazy val longDist = (360+qLong-pLong)
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+
+      if (pRegion == NorthernEast) {
+        if (qRegion == NorthernEast) {
+          //Same region
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else if (qRegion == NorthernWest) {
+          lazy val longDist = (360 + qLong - pLong)
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else if (qRegion == SouthernWest) {
+          lazy val longDist = (360 + qLong - pLong)
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else {
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        }
+
+      } else if (pRegion == NorthernWest) {
+        if (qRegion == NorthernEast) {
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else if (qRegion == NorthernWest) {
+          //Same region
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else if (qRegion == SouthernWest) {
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else {
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        }
+      } else if (pRegion == SouthernWest) {
+        if (qRegion == SouthernWest) {
+          //Same region
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+
+        } else {
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+
+        }
       } else {
-        //Same region
-        lazy val longDist = qLong-pLong
-        lazy val latDist = pLat-qLat
-        lazy val (lo, la) = (longDist*tolerance, latDist*tolerance)
-        (GeoLocation(pLong-lo, pLat+la, None),GeoLocation(qLong+lo, qLat-la, None))
+        if (qRegion == SouthernWest) {
+          lazy val longDist = (360 + qLong - pLong)
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        } else {
+          //Same region
+          lazy val longDist = qLong - pLong
+          lazy val latDist = pLat - qLat
+          lazy val (lo, la) = (longDist * tolerance, latDist * tolerance)
+          (GeoLocation(pLong - lo, pLat + la, None), GeoLocation(qLong + lo, qLat - la, None))
+        }
       }
     }
   }

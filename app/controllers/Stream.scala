@@ -147,8 +147,13 @@ object Stream extends Controller {
 
   def getWithinCoords = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[ViewCoordinates].map{ coords =>
-      val (p,q) = Coords.getToleranceCoords(coords.p, coords.q)
-      //p and q are the new positions with calculated tolerance, need to search inside their bounds in db
+      //pb and qb are the new positions with a tolerance of 0.1 in each direction
+      val (pb,qb) = Coords.getToleranceCoords(coords.p, coords.q)
+
+      //Translating pb and qb to positive longitude values
+      val (p,q) = (Coords.translateLongitudePositive(pb), Coords.translateLongitudePositive(qb))
+
+
     }
 
 

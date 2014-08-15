@@ -11,6 +11,8 @@ import scala.collection.mutable.{ListBuffer, ArrayBuffer}
 import scala.collection.parallel.mutable
 import models.stream.StreamSession
 
+import scala.util.parsing.json.JSONArray
+
 /**
  * Copyright: AppBuddy GmbH
  * User: maltefentross
@@ -41,7 +43,7 @@ case class StreamWithUser(stream: Stream, user: PublicUser)
 
 case class StreamID(streamID:String)
 
-case class ViewCoordinates(p:GeoLocation, q:GeoLocation)
+case class ViewCoordinates(p:GeoLocation, q:GeoLocation, zoom_level:)
 
 object ViewCoordinates{
   implicit val viewCoordsFormat = Json.format[ViewCoordinates]
@@ -95,6 +97,19 @@ object Stream {
     cursor.collect[List]()
   }
 
+
+  def getStreamsInCoordinates(p:GeoLocation, q:GeoLocation) = {
+    val longP = Json.obj("geoLocation.longitude"->Json.obj("$gt"->p.longitude))
+    val longQ = Json.obj("geoLocation.longitude"->Json.obj("$lt"->q.longitude))
+    val latP = Json.obj("geoLocation.latitude"->Json.obj("$lt"->p.latitude))
+    val latQ = Json.obj("geoLocation.latitude"->Json.obj("$gt"->q.latitude))
+    val running = Json.obj("running"->true)
+
+    val json = Json.obj("$and" -> Seq(longP,longQ,latP,latQ,running))
+
+    val cursor:Cursor[Stream] = streamCollection.find(json).cursor[Stream]
+    cursor.collect[List]()
+  }
 
   def getStreamByStreamID(streamID:String) = {
     val cursor:Cursor[Stream] = streamCollection.find(Json.obj("streamID"->streamID)).cursor[Stream]
