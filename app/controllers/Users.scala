@@ -84,4 +84,19 @@ object Users extends Controller {
       }
     }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
   }
+
+
+  /**
+   * get a list of users for a cue
+   *
+   * @return
+   */
+  def findUsersByCue = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[Cue].map{ cue =>
+      User.getPublicUsersByCue(cue.cue).map { users =>
+        Ok(Json.toJson(users))
+      }
+    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+  }
+
 }

@@ -8,6 +8,7 @@ import play.api.Logger
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter
 import reactivemongo.bson.BSONBinary
 import java.io.File
+import scala.concurrent.Future
 
 /**
  * Created by Rene Jahn on 29.01.14.
@@ -22,6 +23,7 @@ case class PublicUser(userID:String, username:String, avatar: Option[Avatar])
 case class SearchUserID(userID:String)
 case class SearchUserName(username:String)
 case class SearchName(name:String)
+case class Cue(cue: String)
 
 object SearchUserID{
   implicit val suIDFormat = Json.format[SearchUserID]
@@ -33,6 +35,10 @@ object SearchUserName{
 
 object SearchName{
   implicit val snFormat = Json.format[SearchName]
+}
+
+object Cue {
+  implicit val cueFormat = Json.format[Cue]
 }
 
 object Avatar {
@@ -126,6 +132,16 @@ object User {
     userCollection.find(Json.obj("name"->name)).one[PublicUser]
   }
 
+  /**
+   * Simply get user by cue
+   *
+   * @param cue
+   * @return
+   */
+  def getPublicUsersByCue(cue: String): Future[Seq[PublicUser]] = {
+    val query = Json.obj("$or" -> Json.obj("name" -> cue, "username" -> cue, "userID" -> cue, "email" -> cue))
+    userCollection.find(query).cursor[PublicUser].collect[List]()
+  }
 
   /**
    * Searches the database for an existing user given the specific searchword.
