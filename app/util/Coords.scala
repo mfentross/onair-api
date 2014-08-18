@@ -41,16 +41,6 @@ object Coords{
     GeoLocation(geo.longitude-180, geo.latitude, geo.altitude)
   }
 
-  def calcLongDist(pLong:Double, qLong:Double, pRegion:Int, qRegion:Int):Double = {
-    if((pRegion == NorthernEast ) || (pRegion == SouthernEast)){
-      2.34
-    }
-      2.1
-  }
-
-  def calcLatDist(pLat:Double, qLat:Double, pRegion:Int, qRegion:Int):Double = {
-      1.1
-  }
 
   /**
    * This method returns transformed GeoLocations. It gets input in form of two GeoLocations, which
@@ -157,6 +147,17 @@ object Coords{
     }
   }
 
+
+  /**
+   * Used to map double values for longitude and latitude of given coordinates p and q to
+   * getTolerance with two GeoLocations
+   *
+   * @param pLong     longitude value of coordinate p
+   * @param pLat      latitude value of coordinate p
+   * @param qLong     longitude value of coordinate q
+   * @param qLat      latitude value of coordinate q
+   * @return
+   */
   def getToleranceCoords(pLong:Double, pLat:Double, qLong:Double, qLat:Double):(GeoLocation, GeoLocation) = {
     getToleranceCoords(GeoLocation(pLong, pLat, None), GeoLocation(qLong, qLat, None))
   }
@@ -176,36 +177,32 @@ object Coords{
    *                2: Negative longitude and positive latitude, meaning the position lies in the northern hemisphere, east of Greenwich
    *                3: Negative longitude and latitude, meaning the position lies in the southern hemisphere, east of Greenwich
    *                4: Positive longitude and negative latitude, meaning the position lies in the southern hemisphere, west of Greenwich
-   *               -1: Specified longitude and latitude values were not lvalid
+   *               -1: Specified longitude and latitude values were not valid
    **/
   def getCoordRegion(long:Double, lat:Double): Int = {
-    var region = -1
-    if((long > 180) || (long < -180) || (lat < -90)||(lat > 90)){
+    if((long < 0) || (long > 360) || (lat < -90)||(lat > 90)){
       NoneValidRegion
     } else {
       if(lat < 0){
         //We are in the southern hemisphere
         if(long > 0 && long < 180){
           //We are west of Greenwich
-          SouthernEast
+          SouthernWest
         } else {
           //We are east of Greenwich
-          SouthernWest
+          SouthernEast
         }
       } else {
         //We are in the northern hemisphere
         if(long > 0 && long < 180){
           //We are west of Greenwich
-          NorthernEast
+          NorthernWest
         } else {
           //We are east of Greenwich
-          NorthernWest
+          NorthernEast
         }
       }
     }
   }
 
-//    def diff(p:Double, q:Double) = {
-//      if(p > 0)
-//    }
 }

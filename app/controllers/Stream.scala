@@ -145,19 +145,35 @@ object Stream extends Controller {
   }
 
 
+  /**
+   * This method gets coordinates from a json-object and calculates new coordinates from them by adding a specific tolerance.
+   * The new coordinates are used to collect all streams in a larger rectangle as the clients view-rectangle. This prevents streams
+   * that get cut from the view-rectangle because of the earth being an ellipsoid and the view a 2D-plane.
+   *
+   * @return  List of Streams as a json-object.
+   */
   def getWithinCoords = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[ViewCoordinates].map{ coords =>
       //pb and qb are the new positions with a tolerance of 0.1 in each direction
-      val (pb,qb) = Coords.getToleranceCoords(coords.p, coords.q)
+      val (pb,qb) = Coords.getToleranceCoords(coords.tl, coords.br)
+
+      Logger.debug(s"Old top-left: $pb")
+      Logger.debug(s"Old bottom-right $qb")
 
       //Translating pb and qb to positive longitude values
       val (p,q) = (Coords.translateLongitudePositive(pb), Coords.translateLongitudePositive(qb))
 
+      Logger.debug(s"New top-left: $p")
+      Logger.debug(s"New bottom-right $q")
 
-    }
+      models.Stream.getStreamsInCoordinates(p, q).flatMap{list=>
+        Logger.debug(list.toString())
+        Future.successful(Ok(Json.toJson(list)))
 
+      }
 
-    Future.successful(Ok(""))
+    }.getOrElse(Future.successful(BadRequest(Json.toJson(Map("error"->"invalid json")))))
+
   }
 
 }

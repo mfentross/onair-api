@@ -43,7 +43,13 @@ case class StreamWithUser(stream: Stream, user: PublicUser)
 
 case class StreamID(streamID:String)
 
-case class ViewCoordinates(p:GeoLocation, q:GeoLocation, zoom_level:)
+/**
+ * Case class defining a request for streams within given view coordinates.
+ *
+ * @param tl    top-left corner of the view.
+ * @param br    bottom-right corner of the view.
+ */
+case class ViewCoordinates(tl:GeoLocation, br:GeoLocation)
 
 object ViewCoordinates{
   implicit val viewCoordsFormat = Json.format[ViewCoordinates]
@@ -98,7 +104,16 @@ object Stream {
   }
 
 
-  def getStreamsInCoordinates(p:GeoLocation, q:GeoLocation) = {
+  /**
+   * Collects a list of type Stream with all streams that are running and lie within
+   * given coordinates using an and-query combining all requirements that have to be true for a
+   * stream within these coordinates.
+   *
+   * @param p     The top-left coordinate of the view-rectangle in which streams are searched for.
+   * @param q     The bottom-right coordinate of the view-rectangle in which streams are searched for.
+   * @return      List of streams that fit the query.
+   */
+  def getStreamsInCoordinates(p:GeoLocation, q:GeoLocation):Future[List[Stream]] = {
     val longP = Json.obj("geoLocation.longitude"->Json.obj("$gt"->p.longitude))
     val longQ = Json.obj("geoLocation.longitude"->Json.obj("$lt"->q.longitude))
     val latP = Json.obj("geoLocation.latitude"->Json.obj("$lt"->p.latitude))
@@ -106,6 +121,8 @@ object Stream {
     val running = Json.obj("running"->true)
 
     val json = Json.obj("$and" -> Seq(longP,longQ,latP,latQ,running))
+
+    Logger.debug(s"ANDQUERY: $json")
 
     val cursor:Cursor[Stream] = streamCollection.find(json).cursor[Stream]
     cursor.collect[List]()
