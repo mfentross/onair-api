@@ -75,7 +75,7 @@ object Stream {
     val hashable: String = sr.title + System.currentTimeMillis()
     val streamID: String = (new HexBinaryAdapter()).marshal(sha.digest(hashable.getBytes()))
 
-    StreamSession.generate(user.userID, false).map { sess =>
+    StreamSession.generate(streamID, false).map { sess =>
 
       if(sess.isDefined) {
 
