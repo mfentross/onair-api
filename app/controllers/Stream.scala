@@ -112,6 +112,13 @@ object Stream extends Controller {
   }
 
 
+  def testLoad = Action.async { request =>
+    models.Stream.loadWithUser(models.Stream.loadAll).flatMap{promise =>
+      promise.map{ list =>
+        Ok(Json.toJson(list))
+      }
+    }
+  }
 
 
   /**

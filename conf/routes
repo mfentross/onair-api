@@ -45,6 +45,7 @@ POST        /stream/create                 controllers.Stream.create
 # Testing
 POST        /test/headers                  controllers.SessionHandler.testHeader
 GET         /test/streams                  controllers.Stream.loadWithUser
+GET         /test/all                      controllers.Stream.testLoad
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                  controllers.Assets.at(path="/public", file)
