@@ -136,12 +136,13 @@ object Stream {
    * @param streamID  Identifier for a specific stream to close.
    * @return
    */
-  def closeStreamByID(streamID:String) = {
+  def closeStreamByID(streamID:String):Future[Boolean] = {
     val json = Json.obj("streamID"->streamID)
     val mod = Json.obj("$set"->Json.obj("running"->false))
 
     streamCollection.update(json, mod).map{lastError =>
       Logger.debug(s"Stream closed with last error: $lastError")
+      lastError.ok
     }
   }
 
