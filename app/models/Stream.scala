@@ -128,6 +128,31 @@ object Stream {
     cursor.collect[List]()
   }
 
+
+  /**
+   * This method is utilised for closing a stream specified by a given stream id.
+   * The stream's running-flag ist set to be false.
+   *
+   * @param streamID  Identifier for a specific stream to close.
+   * @return
+   */
+  def closeStreamByID(streamID:String):Future[Boolean] = {
+    val json = Json.obj("streamID"->streamID)
+    val mod = Json.obj("$set"->Json.obj("running"->false))
+
+    streamCollection.update(json, mod).map{lastError =>
+      Logger.debug(s"Stream closed with last error: $lastError")
+      lastError.ok
+    }
+  }
+
+
+  /**
+   * This method collects a stream identified by it's stream-id.
+   *
+   * @param streamID  Identifier for a specific stream to close.
+   * @return
+   */
   def getStreamByStreamID(streamID:String) = {
     val cursor:Cursor[Stream] = streamCollection.find(Json.obj("streamID"->streamID)).cursor[Stream]
     cursor.collect[List]()

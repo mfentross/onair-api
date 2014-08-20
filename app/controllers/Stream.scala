@@ -18,6 +18,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import models.opentok.TokSession
 import models.pubnub.MessagesHandler
+import models.statics.Notifier
 
 /**
  * Copyright: AppBuddy GmbH
@@ -142,6 +143,25 @@ object Stream extends Controller {
         Ok(Json.toJson(list))
       }
     )
+  }
+
+
+  /**
+   * This method calls out a streamclose-request to the stream-model, which talks to the database and sets
+   * a running stream to not-running.
+   *
+   * @return    Jsonobject indicating success or error of the operation.
+   */
+  def closeStream = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[StreamID].map { sID =>
+      models.Stream.closeStreamByID(sID.streamID).map{ ok =>
+        if(ok){
+          Ok(Json.toJson(Map("success"->"stream closed")))
+        } else {
+          Ok(Json.toJson(Map("error"->"stream could not be closed")))
+        }
+      }
+    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
   }
 
 

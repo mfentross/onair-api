@@ -41,6 +41,7 @@ POST        /settings/avatar/upload        controllers.Settings.uploadAvatar
 GET         /stream/:sID/chat              controllers.Stream.chat(sID: String)
 GET         /stream/all                    controllers.Stream.loadAll
 POST        /stream/create                 controllers.Stream.create
+POST        /stream/close                  controllers.Stream.closeStream
 POST        /stream/getwithincoords        controllers.Stream.getWithinCoords
 
 # Testing
