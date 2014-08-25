@@ -8,6 +8,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json.Json
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter
+import controllers.helpers.CORSActions
 
 
 /**
@@ -25,7 +26,7 @@ object Identification extends Controller with MongoController {
     * @return
     */
   def getMe = Authenticated { ar =>
-    Ok(Json.toJson(ar.user))
+    CORSActions.success(Json.toJson(ar.user))
   }
 
   /**
@@ -42,23 +43,21 @@ object Identification extends Controller with MongoController {
         val json = Json.obj("username" -> req.username ,"phonenumber" -> req.phonenumber, "email" -> req.email)
         userCollection.find(json).one[User].map { u =>
             if (u.isDefined) {
-              BadRequest(Json.toJson(Map("error" -> "user already registered")))
+              CORSActions.error(Json.toJson(Map("error" -> "user already registered")))
             } else {
               val userID = User.createUser(req.firstname,req.lastname,req.username,req.email,req.password,req.phonenumber)
               val sessionID = Session.createNewSession(udid.get,userID)
-              Ok(Json.toJson(Map("sessionID" -> sessionID)))
+              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)))
             }
         }
-
-
       }.getOrElse(
           Future.successful(
-            BadRequest(Json.toJson(Map("error" -> "invalid json")))
+            CORSActions.error(Json.toJson(Map("error" -> "invalid json")))
           )
         )
     } else {
       Future.successful(
-        BadRequest(Json.toJson(Map("error" -> "missing udid")))
+        CORSActions.error(Json.toJson(Map("error" -> "missing udid")))
       )
     }
   }
@@ -77,7 +76,6 @@ object Identification extends Controller with MongoController {
       request.body.validate[UserLoginRequest].map {
         logInRequest =>
 
-
           val username = logInRequest.username
           val password = logInRequest.password
 
@@ -88,19 +86,19 @@ object Identification extends Controller with MongoController {
             u =>
               if (u.isDefined) {
                 val sessionID = models.Session.createNewSession(udid.get, u.get.userID)
-                Ok(Json.toJson(Map("sessionID" -> sessionID)))
+                CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)))
               } else {
-                BadRequest(Json.toJson(Map("error" -> "username or password wrong")))
+                CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")))
               }
           }
       }.getOrElse (
         Future.successful(
-          BadRequest(Json.toJson(Map("error" -> "invalid json")))
+          CORSActions.error(Json.toJson(Map("error" -> "invalid json")))
         )
       )
     } else {
       Future.successful(
-        BadRequest(Json.toJson(Map("error" -> "missing udid")))
+        CORSActions.error(Json.toJson(Map("error" -> "missing udid")))
       )
     }
   }
@@ -112,13 +110,28 @@ object Identification extends Controller with MongoController {
   def logout = Authenticated.async { ar =>
     Session.setSessionInvalid(ar.user.userID,ar.request.headers.get("udid").get).map{ success =>
       if(success){
-        Ok(Json.toJson(Map("status" -> "logged out")))
+        CORSActions.success(Json.toJson(Map("status" -> "logged out")))
       }else {
-        BadRequest(Json.toJson(Map("error" -> "could not log out")))
+        CORSActions.error(Json.toJson(Map("error" -> "could not log out")))
       }
     }
   }
 
+
+  /**
+   *
+   * check if user is logged in or not
+   *
+   * @return
+   */
+  def loggedIn = MaybeAuthenticated { mar =>
+    val loggedin: Boolean = mar.user match {
+      case Some(user) => true
+      case None => false
+    }
+
+    CORSActions.success(Json.obj("loggedIn" -> loggedin))
+  }
 
 
   /*
@@ -136,7 +149,7 @@ object Identification extends Controller with MongoController {
     val futureUsers:Future[List[User]] = userCursor.collect[List]()
 
     futureUsers.map{ users =>
-      Ok(Json.toJson(users))
+      CORSActions.success(Json.toJson(users))
     }
   }
 

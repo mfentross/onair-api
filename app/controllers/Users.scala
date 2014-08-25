@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Play.current
+import controllers.helpers.CORSActions
 
 /**
  * Copyright: AppBuddy GmbH
@@ -37,9 +38,9 @@ object Users extends Controller {
           Follow.follow(followRequest.following, ar.user.userID, followRequest.activate)
         }
 
-        Ok(Notifier.jsonNoError)
+        CORSActions.success(Notifier.jsonNoError)
 
-    }.getOrElse(BadRequest(Notifier.jsonInvalid))
+    }.getOrElse(CORSActions.error(Notifier.jsonInvalid))
   }
 
 
@@ -51,38 +52,38 @@ object Users extends Controller {
     ar.request.body.validate[SearchUserID].map{
       search =>
         User.getPublicUserByID(search.userID).map{ user =>
-          if(user.isDefined) Ok(Json.toJson(user.get)) else BadRequest(Json.toJson(Map("error"->"could not find user")))
+          if(user.isDefined) CORSActions.success(Json.toJson(user.get)) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
         }
-    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
 
   def findUserByUsername = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[SearchUserName].map{
       search =>
         User.getPublicUserByUsername(search.username).map{ user =>
-          if(user.isDefined) Ok(Json.toJson(user.get)) else BadRequest(Json.toJson(Map("error"->"could not find user")))
+          if(user.isDefined) CORSActions.success(Json.toJson(user.get)) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
         }
-    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
 
   def findUserByName = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[SearchName].map{
       search =>
         User.getPublicUserByName(search.name).map{ user =>
-          if(user.isDefined) Ok(Json.toJson(user.get)) else BadRequest(Json.toJson(Map("error"->"could not find user")))
+          if(user.isDefined) CORSActions.success(Json.toJson(user.get)) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
         }
-    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
 
   def findUserByStreamID = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[StreamID].map{ sID =>
-      models.Stream.loadWithUser(models.Stream.getStreamByStreamID(sID.streamID)).flatMap{
-        promise =>
-          promise.map{ streams =>
-            Ok(Json.toJson(streams(0).user))
-          }
+      models.Stream.getStreamByStreamID(sID.streamID).map{
+        maybeStream =>
+          maybeStream.map{ stream =>
+            CORSActions.success(Json.toJson(stream.user))
+          }.getOrElse(CORSActions.error(Json.toJson(Map("error" -> "stream not found"))))
       }
-    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
 
 
@@ -94,14 +95,14 @@ object Users extends Controller {
   def findUsersByCue = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[Cue].map{ cue =>
       User.getPublicUsersByCue(cue.cue).map { users =>
-        Ok(Json.toJson(users))
+        CORSActions.success(Json.toJson(users))
       }
-    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
 
   def testUsersByCue(cue: String) = Action.async { implicit request =>
     User.getPublicUsersByCue(cue).map { users =>
-      Ok(Json.toJson(users))
+      CORSActions.success(Json.toJson(users))
     }
   }
 

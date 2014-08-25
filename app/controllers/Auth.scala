@@ -21,9 +21,14 @@ object Authenticated extends ActionBuilder[AuthenticatedRequest] {
     val sID = request.headers.get("sessionID")
     val udid = request.headers.get("udid")
 
+    val sIDInCookie = request.session.get("sessionID")
+    val udidInCookie = request.session.get("browserID")
+
     if(udid.isDefined && sID.isDefined) {
       models.Session.getUserBySessionAndUdid(sID.get, udid.get)
-    }else{
+    } else if(sIDInCookie.isDefined && udidInCookie.isDefined) {
+      models.Session.getUserBySessionAndUdid(sIDInCookie.get, udidInCookie.get)
+    } else {
       Future.successful(None)
     }
 
@@ -36,6 +41,36 @@ object Authenticated extends ActionBuilder[AuthenticatedRequest] {
         Future.successful(BadRequest(Json.toJson(Map("error" ->"could not authenticate user from request or user not found"))))
       }
       case Some(user) => block(AuthenticatedRequest(user, request))
+    }
+  }
+}
+
+case class MaybeAuthenticatedRequest[A](user: Option[models.User], request: Request[A]) extends WrappedRequest(request)
+
+object MaybeAuthenticated extends ActionBuilder[MaybeAuthenticatedRequest] {
+
+  import models.User
+
+  def userFromRequest[A](request: Request[A]): Future[Option[User]] = {
+    val sID = request.headers.get("sessionID")
+    val udid = request.headers.get("udid")
+
+    val sIDInCookie = request.session.get("sessionID")
+    val udidInCookie = request.session.get("browserID")
+
+    if(udid.isDefined && sID.isDefined) {
+      models.Session.getUserBySessionAndUdid(sID.get, udid.get)
+    } else if(sIDInCookie.isDefined && udidInCookie.isDefined) {
+      models.Session.getUserBySessionAndUdid(sIDInCookie.get, udidInCookie.get)
+    }else{
+      Future.successful(None)
+    }
+
+  }
+
+  def invokeBlock[A](request: Request[A], block: (MaybeAuthenticatedRequest[A]) => Future[Result]): Future[Result] = {
+    userFromRequest(request).flatMap { user =>
+      block(MaybeAuthenticatedRequest(user, request))
     }
   }
 }

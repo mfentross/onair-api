@@ -9,6 +9,7 @@ GET         /                              controllers.Application.index
 POST        /identify/login                controllers.Identification.login
 POST        /identify/register             controllers.Identification.register
 GET         /identify/logout               controllers.Identification.logout
+GET         /identify/loggedIn             controllers.Identification.loggedIn
 
 # Users
 GET         /users/me                      controllers.Identification.getMe
@@ -43,6 +44,7 @@ GET         /stream/all                    controllers.Stream.loadAll
 POST        /stream/create                 controllers.Stream.create
 POST        /stream/close                  controllers.Stream.closeStream
 POST        /stream/getwithincoords        controllers.Stream.getWithinCoords
+GET         /stream/:sID                   controllers.Stream.getStreamByID(sID: String)
 
 # Testing
 #POST        /test/headers                  controllers.SessionHandler.testHeader

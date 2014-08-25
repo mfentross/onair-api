@@ -153,10 +153,30 @@ object Stream {
    * @param streamID  Identifier for a specific stream to close.
    * @return
    */
-  def getStreamByStreamID(streamID:String) = {
-    val cursor:Cursor[Stream] = streamCollection.find(Json.obj("streamID"->streamID)).cursor[Stream]
-    cursor.collect[List]()
+  def getStreamByStreamID(streamID:String): Future[Option[StreamWithUser]] = {
+//    val cursor:Cursor[Stream] = streamCollection.find(Json.obj("streamID"->streamID)).cursor[Stream]
+//    cursor.collect[List]()
+    streamCollection.find(Json.obj("streamID" -> streamID)).one[Stream].flatMap { maybeStream =>
+     maybeStream.map { stream =>
+        initStreamWithUser(stream)
+      }.getOrElse(Future.successful(None))
+    }
   }
+
+  /**
+   *
+   * pretty much the same as LoadWithUser but for only one stream
+   *
+   * @param stream
+   * @return
+   */
+  def initStreamWithUser(stream: Stream): Future[Option[StreamWithUser]] =
+    Database.userCollection.find(Json.obj("userID" -> stream.userID)).one[PublicUser].map { maybeUser =>
+      maybeUser.map { user =>
+        Option(StreamWithUser(stream, user))
+      }.getOrElse(None)
+    }
+
 
   /**
    *

@@ -4,6 +4,7 @@ import play.api.mvc._
 import play.api.Logger
 import models.{User, Avatar, S3File}
 import play.api.libs.json.Json
+import controllers.helpers.CORSActions
 
 /**
  * Copyright: AppBuddy GmbH
@@ -21,9 +22,9 @@ object Settings extends Controller {
         val avatar = Avatar.upload(ar.user.userID, file.ref.file)
         User.updateAvatar(ar.user.userID, avatar)
 
-        Ok(Json.toJson(Map("avatar"-> avatar)))
+        CORSActions.success(Json.toJson(Map("avatar"-> avatar)))
 
-    }.getOrElse(BadRequest("failed to upload"))
+    }.getOrElse(CORSActions.error(Json.toJson("failed to upload")))
   }
 
 }

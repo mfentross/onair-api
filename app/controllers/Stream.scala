@@ -19,6 +19,7 @@ import scala.concurrent.Future
 import models.opentok.TokSession
 import models.pubnub.MessagesHandler
 import models.statics.Notifier
+import controllers.helpers.CORSActions
 
 /**
  * Copyright: AppBuddy GmbH
@@ -109,12 +110,24 @@ object Stream extends Controller {
   def loadAll = Authenticated.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        Ok(Json.toJson(list))
+        CORSActions.success(Json.toJson(list))
       }
     )
   }
 
 
+  /**
+   *
+   * load all necessary data for a specific string
+   *
+   * @param sID
+   * @return
+   */
+  def getStreamByID(sID: String) = MaybeAuthenticated.async { mar =>
+    models.Stream.getStreamByStreamID(sID: String).map { maybeStream =>
+      CORSActions.success(Json.toJson(maybeStream))
+    }
+  }
 
 
   /**
@@ -130,17 +143,17 @@ object Stream extends Controller {
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
             //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
-            Ok(Json.toJson(sess))
+            CORSActions.success(Json.toJson(sess))
           } else
-            BadRequest(Json.toJson(Map("error" -> "could not create session")))
+            CORSActions.error(Json.toJson(Map("error" -> "could not create session")))
         }
-    }.getOrElse(Future.successful(BadRequest(Json.toJson(Map("error" -> "invalid json")))))
+    }.getOrElse(Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid json")))))
   }
 
   def loadWithUser = Action.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        Ok(Json.toJson(list))
+        CORSActions.success(Json.toJson(list))
       }
     )
   }
@@ -156,12 +169,12 @@ object Stream extends Controller {
     ar.request.body.validate[StreamID].map { sID =>
       models.Stream.closeStreamByID(sID.streamID).map{ ok =>
         if(ok){
-          Ok(Json.toJson(Map("success"->"stream closed")))
+          CORSActions.success(Json.toJson(Map("success"->"stream closed")))
         } else {
-          Ok(Json.toJson(Map("error"->"stream could not be closed")))
+          CORSActions.success(Json.toJson(Map("error"->"stream could not be closed")))
         }
       }
-    }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
 
 
@@ -188,11 +201,11 @@ object Stream extends Controller {
 
       models.Stream.getStreamsInCoordinates(p, q).flatMap{list=>
         Logger.debug(list.toString())
-        Future.successful(Ok(Json.toJson(list)))
+        Future.successful(CORSActions.success(Json.toJson(list)))
 
       }
 
-    }.getOrElse(Future.successful(BadRequest(Json.toJson(Map("error"->"invalid json")))))
+    }.getOrElse(Future.successful(CORSActions.error(Json.toJson(Map("error"->"invalid json")))))
 
   }
 
