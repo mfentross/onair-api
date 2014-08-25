@@ -99,4 +99,10 @@ object Users extends Controller {
     }.getOrElse(Future.successful(BadRequest(Notifier.jsonInvalid)))
   }
 
+  def testUsersByCue(cue: String) = Action.async { implicit request =>
+    User.getPublicUsersByCue(cue).map { users =>
+      Ok(Json.toJson(users))
+    }
+  }
+
 }

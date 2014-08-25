@@ -139,7 +139,17 @@ object User {
    * @return
    */
   def getPublicUsersByCue(cue: String): Future[Seq[PublicUser]] = {
-    val query = Json.obj("$or" -> Json.obj("name" -> cue, "username" -> cue, "userID" -> cue, "email" -> cue))
+
+//    val userID = Json.obj("firstname" -> Json.obj("$regex" -> cue, "$options" -> "i"))
+    val firstname = Json.obj("firstname" -> Json.obj("$regex" -> cue, "$options" -> "i"))
+    val lastname = Json.obj("lastname" -> Json.obj("$regex" -> cue, "$options" -> "i"))
+    val username = Json.obj("username" -> Json.obj("$regex" -> cue, "$options" -> "i"))
+//    val email = Json.obj("email" -> Json.obj("$regex" -> cue, "$options" -> "i"))
+
+    val query = Json.obj("$or" -> Json.arr(firstname, lastname, username/*, email*/))
+
+    println(s"query: $query")
+//    val query = Json.obj()
     userCollection.find(query).cursor[PublicUser].collect[List]()
   }
 
