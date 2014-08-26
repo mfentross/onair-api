@@ -125,7 +125,7 @@ object Stream {
     Logger.debug(s"ANDQUERY: $json")
 
     val cursor:Cursor[Stream] = streamCollection.find(json).cursor[Stream]
-    cursor.collect[List]()
+    cursor.collect[List](1000)
   }
 
 
