@@ -37,8 +37,13 @@ object CORSActions extends Controller {
    * @param content
    * @return
    */
-  def success(content: JsValue) = Ok(content).withHeaders("Access-Control-Allow-Origin" -> "*",
-    "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS")
+  def success(content: JsValue) = Ok(content).withHeaders(
+    "Access-Control-Allow-Origin" -> "*",
+    "Access-Control-Allow-Credentials" -> "true",
+    "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Max-Age" -> "604800",
+    "Access-Control-Allow-Headers" -> "x-requested-with"
+  )
 
   /**
    *
@@ -47,7 +52,12 @@ object CORSActions extends Controller {
    * @param content
    * @return
    */
-  def error(content: JsValue) = BadRequest(content).withHeaders("Access-Control-Allow-Origin" -> "*",
-    "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS")
+  def error(content: JsValue) = BadRequest(content).withHeaders(
+    "Access-Control-Allow-Origin" -> "*",
+    "Access-Control-Allow-Credentials" -> "true",
+    "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Max-Age" -> "604800",
+    "Access-Control-Allow-Headers" -> "x-requested-with"
+  )
 
 }

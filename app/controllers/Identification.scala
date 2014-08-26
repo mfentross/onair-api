@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json.Json
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter
 import controllers.helpers.CORSActions
+import java.util.UUID
 
 
 /**
@@ -71,36 +72,35 @@ object Identification extends Controller with MongoController {
    * @return
    */
   def login = Action.async(parse.json) { implicit request =>
-    val udid: Option[String] = request.headers.get("udid")
-    if(udid.isDefined) {
-      request.body.validate[UserLoginRequest].map {
-        logInRequest =>
 
-          val username = logInRequest.username
-          val password = logInRequest.password
+    val udid: String = request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
 
-          val md5 = java.security.MessageDigest.getInstance("SHA-256")
-          val pwHex: String = (new HexBinaryAdapter()).marshal(md5.digest(password.getBytes()))
+    request.body.validate[UserLoginRequest].map {
+      logInRequest =>
 
-          userCollection.find(Json.obj("username" -> username, "password" -> pwHex)).one[User].map {
-            u =>
-              if (u.isDefined) {
-                val sessionID = models.Session.createNewSession(udid.get, u.get.userID)
-                CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)))
-              } else {
-                CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")))
-              }
-          }
-      }.getOrElse (
-        Future.successful(
-          CORSActions.error(Json.toJson(Map("error" -> "invalid json")))
-        )
-      )
-    } else {
+        val username = logInRequest.username
+        val password = logInRequest.password
+
+        val md5 = java.security.MessageDigest.getInstance("SHA-256")
+        val pwHex: String = (new HexBinaryAdapter()).marshal(md5.digest(password.getBytes()))
+
+        userCollection.find(Json.obj("username" -> username, "password" -> pwHex)).one[User].map {
+          u =>
+            if (u.isDefined) {
+              val sessionID = models.Session.createNewSession(udid, u.get.userID)
+              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID))).withSession(
+                "browserID" -> udid,
+                "sessionID" -> sessionID
+              )
+            } else {
+              CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")))
+            }
+        }
+    }.getOrElse (
       Future.successful(
-        CORSActions.error(Json.toJson(Map("error" -> "missing udid")))
+        CORSActions.error(Json.toJson(Map("error" -> "invalid json")))
       )
-    }
+    )
   }
 
   /**

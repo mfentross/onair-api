@@ -74,8 +74,23 @@ object Stream extends Controller {
       val in = Iteratee.foreach[JsValue] { event =>
 
         // GET USER
-        val sID = request.headers.get("sessionID")
-        val udid = request.headers.get("udid")
+        val sID: Option[String] = {
+          if(request.headers.get("sessionID").isDefined)
+            request.headers.get("sessionID")
+          else if (request.session.get("sessionID").isDefined)
+            request.session.get("sessionID")
+          else
+            None
+        }
+
+        val udid = {
+          if(request.headers.get("udid").isDefined)
+            request.headers.get("udid")
+          else if (request.session.get("browserID").isDefined)
+            request.session.get("browserID")
+          else
+            None
+        }
 
         if(udid.isDefined && sID.isDefined) {
           models.Session.getUserBySessionAndUdidAsPublicUser(sID.get, udid.get).map { user =>
