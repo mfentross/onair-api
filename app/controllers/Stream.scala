@@ -20,6 +20,7 @@ import models.opentok.TokSession
 import models.pubnub.MessagesHandler
 import models.statics.Notifier
 import controllers.helpers.CORSActions
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Copyright: AppBuddy GmbH
@@ -216,7 +217,15 @@ object Stream extends Controller {
 
       models.Stream.getStreamsInCoordinates(p, q).flatMap{list=>
         Logger.debug(list.toString())
-        Future.successful(CORSActions.success(Json.toJson(list)))
+        val remapped = ArrayBuffer[Stream]()
+        list.map{ stream =>
+          if(stream.geoLocation.isDefined) {
+            val geoLoc:Option[GeoLocation] = Some(Coords.translateLogitudeNegative(stream.geoLocation.get))
+            val st = models.Stream(stream.streamID,stream.userID, stream.title, stream.descriptionText, geoLoc, stream.session, stream.running)
+            remapped += st
+          }
+        }
+        Future.successful(CORSActions.success(Json.toJson(remapped.toList)))
 
       }
 
