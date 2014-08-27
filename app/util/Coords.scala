@@ -37,7 +37,7 @@ object Coords{
    * @param geo GeoLocation before reversing.
    * @return    GeoLocation after reversing.
    */
-  def translateLogitudeNegative(geo:GeoLocation):GeoLocation = {
+  def translateLongitudeNegative(geo:GeoLocation):GeoLocation = {
     GeoLocation(geo.longitude-180, geo.latitude, geo.altitude)
   }
 
