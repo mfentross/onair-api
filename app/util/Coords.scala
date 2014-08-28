@@ -37,7 +37,7 @@ object Coords{
    * @param geo GeoLocation before reversing.
    * @return    GeoLocation after reversing.
    */
-  def translateLogitudeNegative(geo:GeoLocation):GeoLocation = {
+  def translateLongitudeNegative(geo:GeoLocation):GeoLocation = {
     GeoLocation(geo.longitude-180, geo.latitude, geo.altitude)
   }
 
@@ -180,12 +180,12 @@ object Coords{
    *               -1: Specified longitude and latitude values were not valid
    **/
   def getCoordRegion(long:Double, lat:Double): Int = {
-    if((long < 0) || (long > 360) || (lat < -90)||(lat > 90)){
+    if((long < -180) || (long > 180) || (lat < -90)||(lat > 90)){
       NoneValidRegion
     } else {
       if(lat < 0){
         //We are in the southern hemisphere
-        if(long > 0 && long < 180){
+        if(long > -180 && long < 0){
           //We are west of Greenwich
           SouthernWest
         } else {
@@ -194,7 +194,7 @@ object Coords{
         }
       } else {
         //We are in the northern hemisphere
-        if(long > 0 && long < 180){
+        if(long > -180 && long < 0){
           //We are west of Greenwich
           NorthernWest
         } else {
