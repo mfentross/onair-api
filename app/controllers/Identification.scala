@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.Logger
 import play.api.mvc.{Action, Controller}
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
@@ -72,7 +73,7 @@ object Identification extends Controller with MongoController {
    * @return
    */
   def login = Action.async(parse.json) { implicit request =>
-
+    Logger.debug("Login Request: "+request.headers)
     val udid: String = request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
 
     request.body.validate[UserLoginRequest].map {

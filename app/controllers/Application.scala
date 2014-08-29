@@ -1,6 +1,8 @@
 package controllers
 
+import controllers.helpers.CORSActions
 import play.api._
+import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.libs.iteratee.{Concurrent, Iteratee}
 import play.api.libs.concurrent.Execution.Implicits._
@@ -25,6 +27,13 @@ object Application extends Controller {
 //    val out = Enumerator(Array(20.toByte, 10.toByte))
 
     (in, out)
+  }
+
+
+
+  def preflight(suck:String) = Action { request =>
+      Logger.debug(request.remoteAddress)
+      CORSActions.successForOrigin("lol")
   }
 
   def send = WebSocket.using[Array[Byte]] { implicit request =>

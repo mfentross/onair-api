@@ -138,7 +138,7 @@ object Session {
 
   def setSessionInvalid(userID:String, udid:String): Future[Boolean] = {
     val json = Json.obj("userID" -> userID, "udid" -> udid, "valid" -> true)
-    val modifier = Json.obj("$set" -> Json.obj("valid" -> "false"))
+    val modifier = Json.obj("$set" -> Json.obj("valid" -> false))
 
     sessionCollection.update(json,modifier).map{ lastError =>
       Logger.debug("lasterror ok: "+lastError.ok)
