@@ -1,6 +1,7 @@
 package controllers
 
 import _root_.util.Coords
+import controllers.helpers.CORSActions
 
 import scala.collection.mutable
 import play.api.libs.iteratee.Concurrent.Channel
@@ -202,36 +203,43 @@ object Stream extends Controller {
    * @return  List of Streams as a json-object.
    */
   def getWithinCoords = Authenticated.async(parse.json) { ar =>
-    ar.request.body.validate[ViewCoordinates].map{ coords =>
+    ar.request.body.validate[ViewCoordinates].map { coords =>
       //pb and qb are the new positions with a tolerance of 0.1 in each direction
-      val (pb,qb) = Coords.getToleranceCoords(coords.tl, coords.br)
 
-      Logger.debug(s"Old top-left: $pb")
-      Logger.debug(s"Old bottom-right $qb")
+        if (Coords.isValidViewport(coords.tl, coords.br)) {
 
-      //Translating pb and qb to positive longitude values
-      val (p,q) = (Coords.translateLongitudePositive(pb), Coords.translateLongitudePositive(qb))
+          val (pb, qb) = Coords.getToleranceCoords(coords.tl, coords.br)
 
-      Logger.debug(s"New top-left: $p")
-      Logger.debug(s"New bottom-right $q")
+          Logger.debug(s"Old top-left: $pb")
+          Logger.debug(s"Old bottom-right $qb")
 
-      models.Stream.getStreamsInCoordinates(p, q).flatMap{list=>
-        Logger.debug(list.toString())
-        val remapped = ArrayBuffer[Stream]()
-        list.map{ stream =>
+          //Translating pb and qb to positive longitude values
+          val (p, q) = (Coords.translateLongitudePositive(pb), Coords.translateLongitudePositive(qb))
 
-          if(stream.geoLocation.isDefined) {
-            val geoLoc:Option[GeoLocation] = Some(Coords.translateLongitudeNegative(stream.geoLocation.get))
-            val st = models.Stream(stream.streamID,stream.userID, stream.title, stream.descriptionText, geoLoc, stream.session, stream.running)
-            remapped += st
+          Logger.debug(s"New top-left: $p")
+          Logger.debug(s"New bottom-right $q")
+
+          models.Stream.getStreamsInCoordinates(p, q).flatMap { list =>
+            Logger.debug(list.toString())
+            val remapped = ArrayBuffer[Stream]()
+            list.map { stream =>
+
+              if (stream.geoLocation.isDefined) {
+                val geoLoc: Option[GeoLocation] = Some(Coords.translateLongitudeNegative(stream.geoLocation.get))
+                val st = models.Stream(stream.streamID, stream.userID, stream.title, stream.descriptionText, geoLoc, stream.session, stream.running)
+                remapped += st
+              }
+            }
+            Logger.debug("Streams: " + remapped.toList)
+            Future.successful(CORSActions.success(Json.toJson(remapped.toList)))
+
           }
+        } else {
+          Logger.debug("Invalid viewport")
+          Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid viewport"))))
         }
-        Logger.debug("Streams: "+remapped.toList)
-        Future.successful(CORSActions.success(Json.toJson(remapped.toList)))
+      }.getOrElse(Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid json")))))
 
-      }
-
-    }.getOrElse(Future.successful(CORSActions.error(Json.toJson(Map("error"->"invalid json")))))
 
   }
 
