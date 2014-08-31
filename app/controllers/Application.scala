@@ -33,7 +33,12 @@ object Application extends Controller {
 
   def preflight(suck:String) = Action { request =>
       Logger.debug(request.remoteAddress)
-      CORSActions.successForOrigin("lol")
+      val origin:Option[String] = request.headers.get("origin")
+      if(origin.isDefined){
+        CORSActions.successForOrigin(origin.get)
+      }else {
+        CORSActions.successForOrigin("lol")
+      }
   }
 
   def send = WebSocket.using[Array[Byte]] { implicit request =>

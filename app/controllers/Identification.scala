@@ -73,7 +73,10 @@ object Identification extends Controller with MongoController {
    * @return
    */
   def login = Action.async(parse.json) { implicit request =>
-    Logger.debug("Login Request: "+request.headers)
+    val origin:Option[String] = request.headers.get("origin")
+    if(origin.isDefined) {
+      Logger.debug("Login Request from: " + origin.get)
+    }
     val udid: String = request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
 
     request.body.validate[UserLoginRequest].map {
@@ -89,12 +92,12 @@ object Identification extends Controller with MongoController {
           u =>
             if (u.isDefined) {
               val sessionID = models.Session.createNewSession(udid, u.get.userID)
-              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID))).withSession(
+              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)),origin).withSession(
                 "browserID" -> udid,
                 "sessionID" -> sessionID
               )
             } else {
-              CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")))
+              CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")),origin)
             }
         }
     }.getOrElse (
@@ -131,7 +134,7 @@ object Identification extends Controller with MongoController {
       case None => false
     }
 
-    CORSActions.success(Json.obj("loggedIn" -> loggedin))
+    CORSActions.success(Json.obj("loggedIn" -> loggedin),mar.request.headers.get("origin"))
   }
 
 
