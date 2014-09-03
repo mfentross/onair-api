@@ -42,6 +42,19 @@ object Coords{
   }
 
 
+
+  def isValidViewport(topleft:GeoLocation, bottomright:GeoLocation):Boolean = {
+    val transtl:GeoLocation = translateLongitudePositive(topleft)
+    val transbr:GeoLocation = translateLongitudePositive(bottomright)
+
+    if((transtl.longitude > transbr.longitude) || (transtl.latitude < transbr.latitude)){
+      return false
+    } else {
+      return true
+    }
+  }
+
+
   /**
    * This method returns transformed GeoLocations. It gets input in form of two GeoLocations, which
    * then are calculated in order to check their constellation. From there on their distance is calculated in
