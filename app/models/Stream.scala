@@ -187,18 +187,23 @@ object Stream {
    */
   def loadWithUser(streamList: Future[Seq[Stream]]): Future[Future[List[StreamWithUser]]] = {
     streamList.map { streams =>
+      if(streams.isEmpty){
+        Future(List[StreamWithUser]())
+      } else {
 
-      val userIDs = streams.map(s => Json.obj("userID" -> s.userID))
-      val query = Json.obj("$or" -> userIDs)
 
-      Database.userCollection.find(query).cursor[PublicUser].collect[List]().map { list =>
+        val userIDs = streams.map(s => Json.obj("userID" -> s.userID))
+        val query = Json.obj("$or" -> userIDs)
 
-        val toReturn = ArrayBuffer[StreamWithUser]()
-        streams.map { stream =>
-          toReturn += StreamWithUser(stream, list.filter(_.userID == stream.userID)(0))
+        Database.userCollection.find(query).cursor[PublicUser].collect[List]().map { list =>
+
+          val toReturn = ArrayBuffer[StreamWithUser]()
+          streams.map { stream =>
+            toReturn += StreamWithUser(stream, list.filter(_.userID == stream.userID)(0))
+          }
+
+          toReturn.toList.reverse // FIXME: sort query, so we do not need this. sort by timestamp of stream -> add to case class
         }
-
-        toReturn.toList.reverse // FIXME: sort query, so we do not nees this. sort by timestamp of stream -> add to case class
       }
     }
   }
