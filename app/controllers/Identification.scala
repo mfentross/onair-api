@@ -114,9 +114,9 @@ object Identification extends Controller with MongoController {
   def logout = Authenticated.async { ar =>
     Session.setSessionInvalid(ar.user.userID,ar.request.headers.get("udid").get).map{ success =>
       if(success){
-        CORSActions.success(Json.toJson(Map("status" -> "logged out")))
+        CORSActions.success(Json.toJson(Map("status" -> "logged out")), ar.request.headers.get("origin")).withNewSession
       }else {
-        CORSActions.error(Json.toJson(Map("error" -> "could not log out")))
+        CORSActions.error(Json.toJson(Map("error" -> "could not log out")), ar.request.headers.get("origin"))withNewSession
       }
     }
   }
