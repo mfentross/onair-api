@@ -7,9 +7,13 @@ GET         /                              controllers.Application.index
 
 # Identification
 POST        /identify/login                controllers.Identification.login
+OPTIONS     /identify/login                controllers.TestController.poop
 POST        /identify/register             controllers.Identification.register
 GET         /identify/logout               controllers.Identification.logout
 GET         /identify/loggedIn             controllers.Identification.loggedIn
+
+# Options
+OPTIONS     /*omg                          controllers.Application.preflight(omg: String)
 
 # Users
 GET         /users/me                      controllers.Identification.getMe

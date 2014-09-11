@@ -9,6 +9,7 @@ import util.Coords
 import scala.concurrent.Future
 import scala.util.Random
 import scala.concurrent.ExecutionContext.Implicits.global
+import controllers.helpers.CORSActions
 
 
 /**
@@ -50,6 +51,10 @@ object TestController extends Controller{
 
 
 
+  }
+
+  def poop = Action {
+    CORSActions.success(Json.obj())
   }
 
 }

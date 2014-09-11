@@ -4,10 +4,17 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee.{Concurrent, Iteratee}
 import play.api.libs.concurrent.Execution.Implicits._
+import controllers.helpers.CORSActions
+import play.api.libs.json.Json
+
 //import akka.actor.IO.Iteratee
 
 object Application extends Controller {
 
+
+  def preflight(suck:String) = Action { request =>
+    CORSActions.success(Json.obj())
+  }
 
 //  val videoIt: Iteratee[Array[Byte]]
   lazy val (out,channel) = Concurrent.broadcast[Array[Byte]]
