@@ -37,13 +37,24 @@ object CORSActions extends Controller {
    * @param content
    * @return
    */
-  def success(content: JsValue) = Ok(content).withHeaders(
-    "Access-Control-Allow-Origin" -> "*",
+  def success(content: JsValue, origin:Option[String] = None) = {
+    val orig = if(origin.isDefined) origin.get else "*"
+    Ok(content).withHeaders(
+    "Access-Control-Allow-Origin" -> orig,
     "Access-Control-Allow-Credentials" -> "true",
     "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Max-Age" -> "604800",
-    "Access-Control-Allow-Headers" -> "x-requested-with",
-    "Access-Control-Allow-Headers" -> "Content-Type"
+    "Access-Control-Allow-Headers" -> "x-requested-with, Content-Type")
+  }
+
+
+
+  def successForOrigin(origin:String) = Ok("").withHeaders(
+    "Access-Control-Allow-Origin" -> origin,
+    "Access-Control-Allow-Credentials" -> "true",
+    "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Max-Age" -> "604800",
+    "Access-Control-Allow-Headers" -> "x-requested-with, Content-Type"
   )
 
   /**
@@ -53,13 +64,14 @@ object CORSActions extends Controller {
    * @param content
    * @return
    */
-  def error(content: JsValue) = BadRequest(content).withHeaders(
-    "Access-Control-Allow-Origin" -> "*",
+  def error(content: JsValue, origin: Option[String] = None) = {
+    val orig = if(origin.isDefined) origin.get else "*"
+    BadRequest(content).withHeaders(
+    "Access-Control-Allow-Origin" -> orig,
     "Access-Control-Allow-Credentials" -> "true",
     "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Max-Age" -> "604800",
-    "Access-Control-Allow-Headers" -> "x-requested-with",
-    "Access-Control-Allow-Headers" -> "Content-Type"
-  )
+    "Access-Control-Allow-Headers" -> "x-requested-with,Content-Type")
+  }
 
 }

@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.Logger
 import play.api.mvc.{Action, Controller}
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
@@ -72,7 +73,10 @@ object Identification extends Controller with MongoController {
    * @return
    */
   def login = Action.async(parse.json) { implicit request =>
-
+    val origin:Option[String] = request.headers.get("origin")
+    if(origin.isDefined) {
+      Logger.debug("Login Request from: " + origin.get)
+    }
     val udid: String = request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
 
     request.body.validate[UserLoginRequest].map {
@@ -88,12 +92,12 @@ object Identification extends Controller with MongoController {
           u =>
             if (u.isDefined) {
               val sessionID = models.Session.createNewSession(udid, u.get.userID)
-              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID))).withSession(
+              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)),origin).withSession(
                 "browserID" -> udid,
                 "sessionID" -> sessionID
               )
             } else {
-              CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")))
+              CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")),origin)
             }
         }
     }.getOrElse (
@@ -110,9 +114,9 @@ object Identification extends Controller with MongoController {
   def logout = Authenticated.async { ar =>
     Session.setSessionInvalid(ar.user.userID,ar.request.headers.get("udid").get).map{ success =>
       if(success){
-        CORSActions.success(Json.toJson(Map("status" -> "logged out")))
+        CORSActions.success(Json.toJson(Map("status" -> "logged out")), ar.request.headers.get("origin")).withNewSession
       }else {
-        CORSActions.error(Json.toJson(Map("error" -> "could not log out")))
+        CORSActions.error(Json.toJson(Map("error" -> "could not log out")), ar.request.headers.get("origin"))withNewSession
       }
     }
   }
@@ -130,7 +134,7 @@ object Identification extends Controller with MongoController {
       case None => false
     }
 
-    CORSActions.success(Json.obj("loggedIn" -> loggedin))
+    CORSActions.success(Json.obj("loggedIn" -> loggedin),mar.request.headers.get("origin"))
   }
 
 

@@ -5,6 +5,9 @@
 # Home page
 GET         /                              controllers.Application.index
 
+
+OPTIONS     /*omg                          controllers.Application.preflight(omg)
+
 # Identification
 POST        /identify/login                controllers.Identification.login
 OPTIONS     /identify/login                controllers.TestController.poop
