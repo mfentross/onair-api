@@ -14,9 +14,9 @@ import play.api.libs.json.Json
 object Application extends Controller {
 
 
-  def preflight(suck:String) = Action { request =>
-    CORSActions.success(Json.obj())
-  }
+//  def preflight(suck:String) = Action { request =>
+//    CORSActions.success(Json.obj())
+//  }
 
 //  val videoIt: Iteratee[Array[Byte]]
   lazy val (out,channel) = Concurrent.broadcast[Array[Byte]]

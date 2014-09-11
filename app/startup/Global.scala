@@ -21,7 +21,7 @@ object Global extends GlobalSettings{
 //    println(request.domain)
 //    val add = request.domain
     action.apply(request).map(_.withHeaders(
-      "Access-Control-Allow-Origin" -> "http://localhost",
+      "Access-Control-Allow-Origin" -> "http://onair.herokuapp.com",
       "Access-Control-Allow-Methods" -> "POST, GET, PUT, DELETE, OPTIONS",
       "Access-Control-Allow-Credentials" -> "true"
     ))
