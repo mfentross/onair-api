@@ -19,7 +19,7 @@ object TestController extends Controller{
 
   def createTestStreamsInCoordinates = Action.async(parse.json) {request =>
     request.body.validate[ViewCoordinates].map{coords =>
-      val userID = User.createUser("Renator","Senator", "Raynay", Some("rene@rene.rene"), "Moin", "+4917670657461")
+      val userID = User.createUser("Renator","Senator", "Raynay", Some("rene@rene.rene"), "Moin", Some("+4917670657461"))
       val sessionID = Session.createNewSession("kanaster", userID)
 
       val p = Coords.translateLongitudePositive(coords.tl)

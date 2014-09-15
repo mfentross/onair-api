@@ -15,8 +15,8 @@ import scala.concurrent.Future
  */
 
 case class Avatar(original: String, thumb: String, thumb2x: String)
-case class User(userID: String, firstname: String, lastname: String, username: String, email: Option[String], password: String, phonenumber: String, avatar: Option[Avatar])
-case class UserAccountRequest(firstname:String, lastname: String,username: String, email: Option[String], password: String, phonenumber: String)
+case class User(userID: String, firstname: String, lastname: String, username: String, email: Option[String], password: String, phonenumber: Option[String], avatar: Option[Avatar])
+case class UserAccountRequest(firstname:String, lastname: String,username: String, email: Option[String], password: String, phonenumber: Option[String])
 case class UserLoginRequest(username: String, password: String)
 case class UserSearchRequest(by:String, value:String)
 case class PublicUser(userID:String, username:String, firstname: String, lastname: String, avatar: Option[Avatar])
@@ -87,7 +87,7 @@ object User {
    * @param phonenumber   phonenumber of the user that requested an account
    * @return
    */
-  def createUser(firstname:String, lastname:String, username:String, email: Option[String], password:String, phonenumber: String) = {
+  def createUser(firstname:String, lastname:String, username:String, email: Option[String], password:String, phonenumber: Option[String]) = {
 
     val md5 = java.security.MessageDigest.getInstance("SHA-256")
     val pwHex: String = (new HexBinaryAdapter()).marshal(md5.digest(password.getBytes()))
