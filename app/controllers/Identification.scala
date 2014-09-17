@@ -97,7 +97,7 @@ object Identification extends Controller with MongoController {
                 "sessionID" -> sessionID
               )
             } else {
-              CORSActions.error(Json.toJson(Map("error" -> "username or password wrong")),origin)
+              CORSActions.success(Json.toJson(Map("error" -> "username or password wrong")),origin)
             }
         }
     }.getOrElse (
