@@ -26,5 +26,6 @@ libraryDependencies ++= Seq(
   "com.etaty.rediscala" %% "rediscala" % "1.3.1",
   "com.tokbox" % "opentok-server-sdk" % "2.2.2",
   //"com.opentok.api" % "opentok-java-sdk" % "[0.91.54,)",
-  "com.pubnub" % "pubnub" % "3.6.1"
+  "com.pubnub" % "pubnub" % "3.6.1",
+  "org.julienrf" %% "play-json-variants" % "0.2"
 )

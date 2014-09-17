@@ -22,6 +22,7 @@ import models.pubnub.MessagesHandler
 import models.statics.Notifier
 import controllers.helpers.CORSActions
 import scala.collection.mutable.ArrayBuffer
+import julienrf.variants.Variants
 
 /**
  * Copyright: AppBuddy GmbH
@@ -29,13 +30,20 @@ import scala.collection.mutable.ArrayBuffer
  * Date: 02.05.14
  * Time: 17:56
  */
-case class ChatMessage(user: PublicUser, message: String)
-object ChatMessage {
-  implicit val chatMessageFormat = Json.format[ChatMessage]
+
+sealed trait ChatMessage
+
+case class ChatMessageWithUser (user: PublicUser, message: String) extends ChatMessage
+case class ChatMessageWithInstruction(instruction: String) extends ChatMessage
+object ChatMessageWithUser {
+  implicit val chatMessageFormat = Variants.format[ChatMessage]
+  implicit val chatMessageWithUserFormat = Json.format[ChatMessageWithUser]
+  implicit val chatMessageIFormat = Json.format[ChatMessageWithInstruction]
 }
 
 case class ChannelChatMessage(channelID: String, chatMessage: ChatMessage)
 object ChannelChatMessage {
+  implicit val chatMessageFormat = Variants.format[ChatMessage]
   implicit val channelChatMessageFormat = Json.format[ChannelChatMessage]
 }
 
@@ -94,24 +102,50 @@ object Stream extends Controller {
             None
         }
 
+        // getting message here, so we can
+        val m = (event \ "message").toString()
+
         if(udid.isDefined && sID.isDefined) {
           models.Session.getUserBySessionAndUdidAsPublicUser(sID.get, udid.get).map { user =>
 //            println("about to send message")
 //            val message = ChatMessage(user.get, "test")
             // DANGER: next two lines because of error in SocketRocket that escapes "Message"
-            val m = (event \ "message").toString()
             val unescapedMessage = m.substring(1, m.length - 1)
 
-            val message = ChatMessage(user.get, unescapedMessage)
-            print(message)
-            val cm = ChannelChatMessage(streamID, message)
-//            println(message)
+            // check if is instruction
+            if(unescapedMessage contains("ONAIR_CHAT_INSTRUCTION_")) {
+              models.Stream.getStreamByStreamID(streamID).map { stream =>
+                if(stream.isDefined) {
 
-//            redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
-            MessagesHandler.send(cm)
+                  // check if owner of stream is current user
+                  if(stream.get.user.userID == user.get.userID) {
+                    // send instruction
+                    val message = ChatMessageWithInstruction(unescapedMessage)
+                    val cm = ChannelChatMessage(streamID, message)
+                    MessagesHandler.send(cm)
+                  } else {
+                    val uid = user.get.userID
+                    Logger.error(s"User $uid tried to send an insctruction to Stream $streamID but is not the owner!")
+                  }
+
+                } else {
+                  Logger.error(s"Tried to send instruction to not existing channel")
+                }
+              }
+            } else {
+
+              // no instruction, just a regular message
+              val message = ChatMessageWithUser(user.get, unescapedMessage)
+//              print(message)
+              val cm = ChannelChatMessage(streamID, message)
+              //            println(message)
+
+              //            redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
+              MessagesHandler.send(cm)
+            }
           }
         } else {
-          Logger.error("Invalid HTTP header")
+          Logger.error(s"Invalid HTTP header but tried to send message: $m")
         }
 
       }
