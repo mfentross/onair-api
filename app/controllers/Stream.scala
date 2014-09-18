@@ -145,7 +145,7 @@ object Stream extends Controller {
             }
           }
         } else {
-          Logger.error(s"Invalid HTTP header but tried to send message: $m")
+          Logger.error(s"Invalid HTTP header but tried to send message: $m with udid $udid and sid $sID")
         }
 
       }
