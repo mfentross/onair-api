@@ -39,17 +39,23 @@ object Identification extends Controller with MongoController {
    * @return JSONObject with SessionToken
    */
   def register = Action.async(parse.json) { implicit request =>
-    val udid: Option[String]= request.headers.get("udid")
-    if(udid.isDefined) {
+    val origin:Option[String] = request.headers.get("origin")
+    if(origin.isDefined) {
+      Logger.debug("Login Request from: " + origin.get)
+    }
+    val udid: String= request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
       request.body.validate[UserAccountRequest].map{ req =>
         val json = Json.obj("username" -> req.username ,"phonenumber" -> req.phonenumber, "email" -> req.email)
         userCollection.find(json).one[User].map { u =>
             if (u.isDefined) {
-              CORSActions.error(Json.toJson(Map("error" -> "user already registered")))
+              CORSActions.error(Json.toJson(Map("error" -> "user already registered")), origin)
             } else {
               val userID = User.createUser(req.firstname,req.lastname,req.username,req.email,req.password,req.phonenumber)
-              val sessionID = Session.createNewSession(udid.get,userID)
-              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)))
+              val sessionID = Session.createNewSession(udid,userID)
+              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)),origin).withSession(
+                "browserID" -> udid,
+                "sessionID" -> sessionID
+              )
             }
         }
       }.getOrElse(
@@ -57,11 +63,6 @@ object Identification extends Controller with MongoController {
             CORSActions.error(Json.toJson(Map("error" -> "invalid json")))
           )
         )
-    } else {
-      Future.successful(
-        CORSActions.error(Json.toJson(Map("error" -> "missing udid")))
-      )
-    }
   }
 
 
@@ -108,7 +109,7 @@ object Identification extends Controller with MongoController {
   }
 
   /**
-   * The logout-function  is used to log out users. The previous session is set to be invalid.
+   * The logout-function is used to log out users. The previous session is set to be invalid.
    * @return
    */
   def logout = Authenticated.async { ar =>
