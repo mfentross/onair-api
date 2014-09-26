@@ -1,7 +1,7 @@
 package controllers
 
 import _root_.util.Coords
-import controllers.helpers.CORSActions
+import controllers.helpers.{JSONError, JSONResponse, CORSActions}
 
 import scala.collection.mutable
 import play.api.libs.iteratee.Concurrent.Channel
@@ -20,7 +20,6 @@ import scala.concurrent.Future
 import models.opentok.TokSession
 import models.pubnub.MessagesHandler
 import models.statics.Notifier
-import controllers.helpers.CORSActions
 import scala.collection.mutable.ArrayBuffer
 import julienrf.variants.Variants
 
@@ -161,7 +160,7 @@ object Stream extends Controller {
   def loadAll = Authenticated.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        CORSActions.success(Json.toJson(list))
+        CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(list)))
       }
     )
   }
@@ -176,7 +175,7 @@ object Stream extends Controller {
    */
   def getStreamByID(sID: String) = MaybeAuthenticated.async { mar =>
     models.Stream.getStreamByStreamID(sID: String).map { maybeStream =>
-      CORSActions.success(Json.toJson(maybeStream))
+      CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(maybeStream)))
     }
   }
 
@@ -194,17 +193,18 @@ object Stream extends Controller {
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
             //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
-            CORSActions.success(Json.toJson(sess))
+            CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(sess)))
           } else
             CORSActions.error(Json.toJson(Map("error" -> "could not create session")))
         }
-    }.getOrElse(Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid json")))))
+    }.getOrElse(Future.successful(
+      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
   }
 
   def loadWithUser = Action.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        CORSActions.success(Json.toJson(list))
+        CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(list)))
       }
     )
   }
@@ -225,7 +225,8 @@ object Stream extends Controller {
           CORSActions.success(Json.toJson(Map("error"->"stream could not be closed")))
         }
       }
-    }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
+    }.getOrElse(Future.successful(
+      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
   }
 
 
@@ -265,14 +266,15 @@ object Stream extends Controller {
               }
             }
             Logger.debug("Streams: " + remapped.toList)
-            Future.successful(CORSActions.success(Json.toJson(remapped.toList)))
+            Future.successful(CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(remapped.toList))))
 
           }
         } else {
           Logger.debug("Invalid viewport")
           Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid viewport"))))
         }
-      }.getOrElse(Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid json")))))
+      }.getOrElse(Future.successful(
+        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
 
 
   }

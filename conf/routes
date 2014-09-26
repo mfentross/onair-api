@@ -55,7 +55,7 @@ GET         /stream/:sID                   controllers.Stream.getStreamByID(sID:
 
 # Testing
 #POST        /test/headers                  controllers.SessionHandler.testHeader
-#GET         /test/streams                  controllers.Stream.loadWithUser
+GET         /test/streams                  controllers.Stream.loadWithUser
 #POST        /test/streamcreate             controllers.TestController.createTestStreamsInCoordinates
 #GET         /test/users/:c                 controllers.Users.testUsersByCue(c: String)
 
