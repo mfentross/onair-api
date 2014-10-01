@@ -127,7 +127,7 @@ object Stream extends Controller {
   def loadAll = Authenticated.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        CORSActions.success(Json.toJson(list))
+        CORSActions.success(Json.obj("streams" -> Json.toJson(list)))
       }
     )
   }
@@ -142,7 +142,7 @@ object Stream extends Controller {
    */
   def getStreamByID(sID: String) = MaybeAuthenticated.async { mar =>
     models.Stream.getStreamByStreamID(sID: String).map { maybeStream =>
-      CORSActions.success(Json.toJson(maybeStream))
+      CORSActions.success(Json.obj("stream" -> Json.toJson(maybeStream)))
     }
   }
 
@@ -160,7 +160,7 @@ object Stream extends Controller {
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
             //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
-            CORSActions.success(Json.toJson(sess))
+            CORSActions.success(Json.obj("session" -> Json.toJson(sess)))
           } else
             CORSActions.error(Json.toJson(Map("error" -> "could not create session")))
         }
@@ -231,7 +231,7 @@ object Stream extends Controller {
               }
             }
             Logger.debug("Streams: " + remapped.toList)
-            Future.successful(CORSActions.success(Json.toJson(remapped.toList)))
+            Future.successful(CORSActions.success(Json.obj("streams" -> Json.toJson(remapped.toList))))
 
           }
         } else {

@@ -52,7 +52,7 @@ object Users extends Controller {
     ar.request.body.validate[SearchUserID].map{
       search =>
         User.getPublicUserByID(search.userID).map{ user =>
-          if(user.isDefined) CORSActions.success(Json.toJson(user.get)) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
+          if(user.isDefined) CORSActions.success(Json.obj("user" -> Json.toJson(user.get))) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
         }
     }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
@@ -61,7 +61,7 @@ object Users extends Controller {
     ar.request.body.validate[SearchUserName].map{
       search =>
         User.getPublicUserByUsername(search.username).map{ user =>
-          if(user.isDefined) CORSActions.success(Json.toJson(user.get)) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
+          if(user.isDefined) CORSActions.success(Json.obj("user" -> Json.toJson(user.get))) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
         }
     }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
@@ -70,7 +70,7 @@ object Users extends Controller {
     ar.request.body.validate[SearchName].map{
       search =>
         User.getPublicUserByName(search.name).map{ user =>
-          if(user.isDefined) CORSActions.success(Json.toJson(user.get)) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
+          if(user.isDefined) CORSActions.success(Json.obj("user" -> Json.toJson(user.get))) else CORSActions.error(Json.toJson(Map("error"->"could not find user")))
         }
     }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
@@ -80,7 +80,7 @@ object Users extends Controller {
       models.Stream.getStreamByStreamID(sID.streamID).map{
         maybeStream =>
           maybeStream.map{ stream =>
-            CORSActions.success(Json.toJson(stream.user))
+            CORSActions.success(Json.obj("users" -> Json.toJson(stream.user)))
           }.getOrElse(CORSActions.error(Json.toJson(Map("error" -> "stream not found"))))
       }
     }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
@@ -95,7 +95,7 @@ object Users extends Controller {
   def findUsersByCue = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[Cue].map{ cue =>
       User.getPublicUsersByCue(cue.cue).map { users =>
-        CORSActions.success(Json.toJson(users))
+        CORSActions.success(Json.obj("users" ->Json.toJson(users)))
       }
     }.getOrElse(Future.successful(CORSActions.error(Notifier.jsonInvalid)))
   }
