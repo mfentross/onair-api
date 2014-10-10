@@ -12,6 +12,25 @@ import play.api.Play
  * To change this template use File | Settings | File Templates.
  */
 
+object RequestType extends Enumeration {
+
+  val REGISTER = 1
+  val LOGIN = 2
+  val LOGOUT = 3
+  val LOGGEDIN = 4
+
+}
+
+case class AbstractResult()
+
+object ResultParser {
+
+
+
+}
+
+
+
 /**
  * enumerations for error codes
  * tuple: (error code, error message)
@@ -19,18 +38,29 @@ import play.api.Play
 object JSONError extends Enumeration {
   type JSONError = Value
 
-  val NoError       = Value(0, "no error")
+  //No errors (or small ones...)
+  val NO_ERROR       = Value(100, "no error")
+
+  // parsing errors 2XX
+  val INVALID_CHARSET = Value(201, "invalid charset")
+  val INVALID_JSON = Value(202, "invalid json")
+  val INVALID_PARAMETERS = Value(203, "invalid request parameters")
+
+  //Missing parameters 3XX
+  val MISSING_UDID = Value(301, "missing udid")
+  val MISSING_SESSIONID = Value(302, "missing sessionid")
+  val SESSION_INVALID = Value(310, "session invalid")
 
   // not found errors
-  val NoObjectFound = Value(100, "no objects found")
+  val OBJECT_NOT_FOUND = Value(500, "no objects found")
 
   // identification errors
-  val WrongLogin = Value(200, "wrong credentials")
-  val HeadersMissing = Value(201, "missing udid or session id")
+  val WRONG_LOGIN = Value(400, "wrong credentials")
+  val HEADERS_MISSING = Value(401, "missing udid or session id")
 
-  // parsing errors
-  val InvalidJson = Value(300, "invalid json")
+
 }
+
 
 object JSONResponse {
 
@@ -44,30 +74,30 @@ object JSONResponse {
    */
   def fromJSONObject(o: JsValue, e: Option[JSONError] = None): JsObject = {
 
-
     val numberAndError: (Int, JSONError) = o match {
         // sequence of objects found
       case s: JsArray => {
         if( !s.value.isEmpty ) {
-          (s.value.size, JSONError.NoError)
+          (s.value.size, JSONError.NO_ERROR)
         } else {
-          (0, JSONError.NoObjectFound)
+          (0, JSONError.OBJECT_NOT_FOUND)
         }
       }
       case _ => {
         if(o == None) {
-          (0, JSONError.NoObjectFound)
+          (0, JSONError.OBJECT_NOT_FOUND)
         } else {
-          (1, JSONError.NoError)
+          (1, JSONError.NO_ERROR)
         }
       }
     }
 
     println(numberAndError)
 
+
     Json.obj(
       "result" -> Json.toJson(o),
-      "number_of_objects" -> numberAndError._1,
+      "num_objects" -> numberAndError._1,
       "error_code" -> e.getOrElse(numberAndError._2).id,
       "error_message" -> e.getOrElse(numberAndError._2).+("")
     )

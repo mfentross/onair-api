@@ -40,7 +40,7 @@ object Users extends Controller {
 
         CORSActions.success(JSONResponse.fromJSONObject(Json.obj()))
 
-    }.getOrElse(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson))))
+    }.getOrElse(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON))))
   }
 
 
@@ -54,7 +54,7 @@ object Users extends Controller {
         User.getPublicUserByID(search.userID).map{ user =>
           if(user.isDefined) CORSActions.success(JSONResponse.fromJSONObject(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.fromJSONObject(Json.obj()))
         }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
   def findUserByUsername = Authenticated.async(parse.json) { ar =>
@@ -63,7 +63,7 @@ object Users extends Controller {
         User.getPublicUserByUsername(search.username).map{ user =>
           if(user.isDefined) CORSActions.success(JSONResponse.fromJSONObject(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.fromJSONObject(Json.obj()))
         }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
   def findUserByName = Authenticated.async(parse.json) { ar =>
@@ -72,7 +72,7 @@ object Users extends Controller {
         User.getPublicUserByName(search.name).map{ user =>
           if(user.isDefined) CORSActions.success(JSONResponse.fromJSONObject(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.fromJSONObject(Json.obj()))
         }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
   def findUserByStreamID = Authenticated.async(parse.json) { ar =>
@@ -83,7 +83,7 @@ object Users extends Controller {
             CORSActions.success(Json.obj("user" -> Json.toJson(stream.user)))
           }.getOrElse(CORSActions.error(Json.toJson(Map("error" -> "stream not found"))))
       }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
 
@@ -97,7 +97,7 @@ object Users extends Controller {
       User.getPublicUsersByCue(cue.cue).map { users =>
         CORSActions.success(JSONResponse.fromJSONObject(Json.obj("users" -> Json.toJson(users))))
       }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
   def testUsersByCue(cue: String) = Action.async { implicit request =>

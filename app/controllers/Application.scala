@@ -2,12 +2,11 @@ package controllers
 
 import controllers.helpers.CORSActions
 import play.api._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import play.api.libs.iteratee.{Concurrent, Iteratee}
 import play.api.libs.concurrent.Execution.Implicits._
 import controllers.helpers.CORSActions
-import play.api.libs.json.Json
 
 //import akka.actor.IO.Iteratee
 
@@ -91,5 +90,17 @@ object Application extends Controller {
   def viewTextSender = Action {
     Ok(views.html.client())
   }
+
+//
+//  implicit val rds = Json.format[(String, String)]
+//  def testValidator = Action(parse.json) {request =>
+//    request.body.validate[(String, String)].map{
+//      case (name, age) => Ok("Hello " + name + ", you're "+age)
+//    }.recoverTotal{
+//      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+//    }
+//
+//  }
+
 
 }

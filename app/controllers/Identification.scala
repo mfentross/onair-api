@@ -39,6 +39,8 @@ object Identification extends Controller with MongoController {
    * @return JSONObject with SessionToken
    */
   def register = Action.async(parse.json) { implicit request =>
+
+
     val udid: Option[String]= request.headers.get("udid")
     if(udid.isDefined) {
       request.body.validate[UserAccountRequest].map{ req =>
@@ -54,12 +56,12 @@ object Identification extends Controller with MongoController {
         }
       }.getOrElse(
           Future.successful(
-            CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))
+            CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))
           )
         )
     } else {
       Future.successful(
-        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.HeadersMissing)))
+        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.MISSING_UDID)))
       )
     }
   }
@@ -79,6 +81,7 @@ object Identification extends Controller with MongoController {
     }
     val udid: String = request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
 
+    //UserLoginRequest(username: String, password: String)
     request.body.validate[UserLoginRequest].map {
       logInRequest =>
 
@@ -92,17 +95,17 @@ object Identification extends Controller with MongoController {
           u =>
             if (u.isDefined) {
               val sessionID = models.Session.createNewSession(udid, u.get.userID)
-              CORSActions.success(Json.toJson(Map("sessionID" -> sessionID)),origin).withSession(
+              CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(Map("sessionID" -> sessionID))),origin).withSession(
                 "browserID" -> udid,
                 "sessionID" -> sessionID
               )
             } else {
-              CORSActions.success(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.WrongLogin)),origin)
+              CORSActions.success(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.WRONG_LOGIN)),origin)
             }
         }
     }.getOrElse (
       Future.successful(
-        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))
+        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))
       )
     )
   }

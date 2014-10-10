@@ -24,55 +24,6 @@ import java.util.UUID
  */
 case class Session(sessionID: String, udid: String, userID: String, timestamp: Long, var valid: Boolean)
 
-/**
- */
-
-/** This is the UploadSession as it is received from the database after successful validation.
- *  The field value is used to check if the session has been used already and therefore limits adding
- *  files to joyssimoments to one. The momentID field helps to identify the moment to which the uploaded
- *  attachment belongs.
- *
- * @param momentID
- * @param valid
- */
-case class UploadSession(momentID:String, valid:Boolean)
-
-/** This case class is used for validation the JSONFo
- *
- * @param sessionCode code that a user received after creating a moment thats gonna be extended by an attachment
- *                    used to identify the session for uploading and verifying that it is still unused
- */
-case class UploadSessionRequest(sessionCode:String)
-
-
-object UploadSession {
-  implicit val uploadSessionFormat = Json.format[UploadSession]
-  def uploadsessionCollection:JSONCollection = Database.uploadsessionCollection
-
-  def getUploadSessionByMomentID(momentID:String) : Future[Option[UploadSession]] = {
-    uploadsessionCollection.find(Json.obj("momentID" -> momentID)).one[UploadSession]
-  }
-
-  def setUploadSessionInvalid(momentID:String) : Future[Boolean] = {
-    val json = Json.obj("momentID" -> momentID)
-    val modifier = Json.obj("$set" -> Json.obj("valid" -> false))
-
-    uploadsessionCollection.update(json,modifier).map{ lastError =>
-      Logger.debug(s"Uploadession successfully updated with lastError: $lastError")
-      lastError.ok
-    }
-
-  }
-
-  def createUploadSession(momentID:String) = {
-    val uploadSession = UploadSession(momentID, true)
-    uploadsessionCollection.insert(uploadSession).map {lastError =>
-      Logger.debug(s"Uploadsession successfully inserted with lastError: $lastError")
-
-    }
-  }
-}
-
 object Session {
   implicit val sessionFormat = Json.format[Session]
   def sessionCollection: JSONCollection = Database.sessionCollection

@@ -198,7 +198,7 @@ object Stream extends Controller {
             CORSActions.error(Json.toJson(Map("error" -> "could not create session")))
         }
     }.getOrElse(Future.successful(
-      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
   def loadWithUser = Action.async { ar =>
@@ -226,7 +226,7 @@ object Stream extends Controller {
         }
       }
     }.getOrElse(Future.successful(
-      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
   }
 
 
@@ -274,7 +274,7 @@ object Stream extends Controller {
           Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid viewport"))))
         }
       }.getOrElse(Future.successful(
-        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
 
 
   }

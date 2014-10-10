@@ -14,11 +14,15 @@ import scala.concurrent.Future
  * Created by Rene Jahn on 29.01.14.
  */
 
-case class Avatar(original: String, thumb: String, thumb2x: String)
-case class User(userID: String, firstname: String, lastname: String, username: String, email: Option[String], password: String, phonenumber: Option[String], avatar: Option[Avatar])
+/*Request Validation*/
 case class UserAccountRequest(firstname:String, lastname: String,username: String, email: Option[String], password: String, phonenumber: Option[String])
 case class UserLoginRequest(username: String, password: String)
-case class UserSearchRequest(by:String, value:String)
+
+
+
+case class Avatar(original: String, thumb: String, thumb2x: String)
+case class User(userID: String, firstname: String, lastname: String, username: String, email: Option[String], password: String, phonenumber: Option[String], avatar: Option[Avatar])
+
 case class PublicUser(userID:String, username:String, firstname: String, lastname: String, avatar: Option[Avatar])
 case class SearchUserID(userID:String)
 case class SearchUserName(username:String)
@@ -195,8 +199,4 @@ object UserAccountRequest{
 
 object UserLoginRequest{
   implicit val userLoginRequestFormat = Json.format[UserLoginRequest]
-}
-
-object UserSearchRequest{
-  implicit val userSearchRequestFormat = Json.format[UserSearchRequest]
 }
