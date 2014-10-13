@@ -188,7 +188,7 @@ object Stream extends Controller {
   def create = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[StreamRequest].map {
       streamRequest =>
-        models.Stream.create(streamRequest, ar.user).map { sess =>
+        models.Stream.create(streamRequest.title, streamRequest.descriptionText, streamRequest.geoLocation, ar.user).map { sess =>
           if(sess.isDefined) {
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]

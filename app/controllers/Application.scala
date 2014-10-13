@@ -2,8 +2,11 @@ package controllers
 
 import controllers.helpers.CORSActions
 import play.api._
-import play.api.libs.json.{JsError, Json}
+import play.api.libs.json.{JsPath, JsError, Json}
 import play.api.mvc._
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 import play.api.libs.iteratee.{Concurrent, Iteratee}
 import play.api.libs.concurrent.Execution.Implicits._
 import controllers.helpers.CORSActions
@@ -91,16 +94,16 @@ object Application extends Controller {
     Ok(views.html.client())
   }
 
-//
-//  implicit val rds = Json.format[(String, String)]
-//  def testValidator = Action(parse.json) {request =>
-//    request.body.validate[(String, String)].map{
-//      case (name, age) => Ok("Hello " + name + ", you're "+age)
-//    }.recoverTotal{
-//      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-//    }
-//
-//  }
+
+  def testValidator = Action(parse.json) {request =>
+    implicit val testReads:Reads[(String, Option[Int], Option[String])] = ((JsPath \ "name").read[String] and (JsPath \ "age").readNullable[Int] and (JsPath \ "lol").readNullable[String]).tupled
+    request.body.validate[(String, Option[Int], Option[String])].map{
+      case (name, age, lol) => Ok("Hello " + name + ", you're "+age.getOrElse("not telling your age :( .")+" You're saying "+lol.getOrElse("nothing"))
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }
+
+  }
 
 
 }

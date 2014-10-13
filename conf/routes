@@ -59,5 +59,7 @@ GET         /test/streams                  controllers.Stream.loadWithUser
 #POST        /test/streamcreate             controllers.TestController.createTestStreamsInCoordinates
 #GET         /test/users/:c                 controllers.Users.testUsersByCue(c: String)
 
+POST        /yolo                           controllers.Application.testValidator
+
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                  controllers.Assets.at(path="/public", file)

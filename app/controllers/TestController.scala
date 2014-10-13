@@ -39,7 +39,7 @@ object TestController extends Controller{
             val lat = q.latitude + randLat * diffLat
 
             val sr = StreamRequest(s"Stream $x", "yolololo", Some(GeoLocation(long, lat, None)))
-            models.Stream.create(sr, user.get)
+            models.Stream.create(sr.title, sr.descriptionText, sr.geoLocation, user.get)
           }
           Future.successful(Ok("clapped"))
 

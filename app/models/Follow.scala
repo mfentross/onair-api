@@ -62,15 +62,3 @@ object Follow {
     Database.followCollection.remove(Follow(following, follower))
 
 }
-
-
-/**
- * this request should be sent to api
- * @param following
- * @param activate
- */
-case class FollowRequest(following: String, activate: Boolean)
-
-object FollowRequest {
-  implicit val followRequestFormat = Json.format[FollowRequest]
-}
