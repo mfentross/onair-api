@@ -54,6 +54,18 @@ class ApplicationSpec extends Specification {
   //
   //  }
 
+//  "Identification" should {
+//    "respond to login with invalid json" in {
+////      val fr = FakeRequest(Helpers.POST, "/identify/login", FakeHeaders(), """ {"name": "New Group", "collabs": ["foo", "asdf"]} """)
+//      val result = controllers.Identification.login()(FakeRequest())
+//
+//      status(result) must equalTo(OK)
+//
+//    }
+//  }
+
+
+
   "User" should {
     "Get public user by id must have firstname, lastname, id and username" in new WithApplication {
       val userID = "AFB1BAF30A443B16B8D87B233D4D1ED2D75A02D42344A0B69F5F9CCA0E2FDC81"

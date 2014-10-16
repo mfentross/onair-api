@@ -13,4 +13,5 @@ case class GeoLocation (
 
 object GeoLocation{
   implicit val geoLocationFormat = Json.format[GeoLocation]
+
 }

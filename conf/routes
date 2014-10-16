@@ -22,9 +22,9 @@ OPTIONS     /*omg                          controllers.Application.preflight(omg
 GET         /users/me                      controllers.Identification.getMe
 POST        /users/follow                  controllers.Users.follow
 POST        /users/search/id               controllers.Users.findUserByID
-POST        /users/search/username         controllers.Users.findUserByUsername
-POST        /users/search/name             controllers.Users.findUserByName
-POST        /users/search/streamid         controllers.Users.findUserByStreamID
+#POST        /users/search/username         controllers.Users.findUserByUsername
+#POST        /users/search/name             controllers.Users.findUserByName
+#POST        /users/search/streamid         controllers.Users.findUserByStreamID
 POST        /users/search/cue              controllers.Users.findUsersByCue
 
 # Video
@@ -58,6 +58,8 @@ GET         /stream/:sID                   controllers.Stream.getStreamByID(sID:
 GET         /test/streams                  controllers.Stream.loadWithUser
 #POST        /test/streamcreate             controllers.TestController.createTestStreamsInCoordinates
 #GET         /test/users/:c                 controllers.Users.testUsersByCue(c: String)
+
+POST        /yolo                           controllers.Application.testValidator
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                  controllers.Assets.at(path="/public", file)

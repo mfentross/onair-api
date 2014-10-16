@@ -2,12 +2,14 @@ package controllers
 
 import controllers.helpers.CORSActions
 import play.api._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsPath, JsError, Json}
 import play.api.mvc._
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 import play.api.libs.iteratee.{Concurrent, Iteratee}
 import play.api.libs.concurrent.Execution.Implicits._
 import controllers.helpers.CORSActions
-import play.api.libs.json.Json
 
 //import akka.actor.IO.Iteratee
 
@@ -91,5 +93,17 @@ object Application extends Controller {
   def viewTextSender = Action {
     Ok(views.html.client())
   }
+
+
+  def testValidator = Action(parse.json) {request =>
+    implicit val testReads:Reads[(String, Option[Int], Option[String])] = ((JsPath \ "name").read[String] and (JsPath \ "age").readNullable[Int] and (JsPath \ "lol").readNullable[String]).tupled
+    request.body.validate[(String, Option[Int], Option[String])].map{
+      case (name, age, lol) => Ok("Hello " + name + ", you're "+age.getOrElse("not telling your age :( .")+" You're saying "+lol.getOrElse("nothing"))
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }
+
+  }
+
 
 }

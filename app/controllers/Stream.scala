@@ -1,7 +1,7 @@
 package controllers
 
 import _root_.util.Coords
-import controllers.helpers.{JSONError, JSONResponse, CORSActions}
+import controllers.helpers.{ResultStatus, JSONResponse, CORSActions}
 
 import scala.collection.mutable
 import play.api.libs.iteratee.Concurrent.Channel
@@ -160,7 +160,7 @@ object Stream extends Controller {
   def loadAll = Authenticated.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        CORSActions.success(JSONResponse.fromJSONObject(Json.obj("streams" -> Json.toJson(list))))
+        Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(list)),ResultStatus.NO_ERROR))
       }
     )
   }
@@ -175,7 +175,7 @@ object Stream extends Controller {
    */
   def getStreamByID(sID: String) = MaybeAuthenticated.async { mar =>
     models.Stream.getStreamByStreamID(sID: String).map { maybeStream =>
-      CORSActions.success(JSONResponse.fromJSONObject(Json.obj("stream" -> Json.toJson(maybeStream))))
+      Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(maybeStream)),ResultStatus.NO_ERROR))
     }
   }
 
@@ -188,23 +188,23 @@ object Stream extends Controller {
   def create = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[StreamRequest].map {
       streamRequest =>
-        models.Stream.create(streamRequest, ar.user).map { sess =>
+        models.Stream.create(streamRequest.title, streamRequest.descriptionText, streamRequest.geoLocation, ar.user).map { sess =>
           if(sess.isDefined) {
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
             //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
-            CORSActions.success(JSONResponse.fromJSONObject(Json.obj("session" -> Json.toJson(sess))))
+            Ok(JSONResponse.parseResult(Json.obj("session" -> Json.toJson(sess)),ResultStatus.NO_ERROR))
           } else
             CORSActions.error(Json.toJson(Map("error" -> "could not create session")))
         }
     }.getOrElse(Future.successful(
-      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+      Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
   }
 
   def loadWithUser = Action.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        CORSActions.success(JSONResponse.fromJSONObject(Json.obj("streams" -> Json.toJson(list))))
+        Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(list)),ResultStatus.NO_ERROR))
       }
     )
   }
@@ -226,7 +226,7 @@ object Stream extends Controller {
         }
       }
     }.getOrElse(Future.successful(
-      CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
+      Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
   }
 
 
@@ -266,7 +266,7 @@ object Stream extends Controller {
               }
             }
             Logger.debug("Streams: " + remapped.toList)
-            Future.successful(CORSActions.success(JSONResponse.fromJSONObject(Json.obj("streams" -> Json.toJson(remapped.toList)))))
+            Future.successful(Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(remapped.toList)),ResultStatus.NO_ERROR)))
 
           }
         } else {
@@ -274,9 +274,7 @@ object Stream extends Controller {
           Future.successful(CORSActions.error(Json.toJson(Map("error" -> "invalid viewport"))))
         }
       }.getOrElse(Future.successful(
-        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.InvalidJson)))))
-
-
+        Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
   }
 
 }

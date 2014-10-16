@@ -22,15 +22,6 @@ import scala.util.parsing.json.JSONArray
 
 case class Stream(streamID: String, userID: String, title: String, descriptionText: String, geoLocation: Option[GeoLocation], session: StreamSession, running: Boolean)
 
-/**
- *
- * Request class
- *
- * @param title
- * @param descriptionText
- * @param geoLocation
- */
-case class StreamRequest(title: String, descriptionText: String, geoLocation: Option[GeoLocation])
 
 /**
  *
@@ -41,25 +32,6 @@ case class StreamRequest(title: String, descriptionText: String, geoLocation: Op
  */
 case class StreamWithUser(stream: Stream, user: PublicUser)
 
-case class StreamID(streamID:String)
-
-/**
- * Case class defining a request for streams within given view coordinates.
- *
- * @param tl    top-left corner of the view.
- * @param br    bottom-right corner of the view.
- */
-case class ViewCoordinates(tl:GeoLocation, br:GeoLocation)
-
-object ViewCoordinates{
-  implicit val viewCoordsFormat = Json.format[ViewCoordinates]
-}
-
-object StreamID{
-  implicit val streamIDFormat = Json.format[StreamID]
-}
-
-
 object Stream {
   val streamCollection = Database.streamCollection
   implicit val streamFormat = Json.format[Stream]
@@ -67,19 +39,18 @@ object Stream {
   /**
    * create stream and save it to db
    *
-   * @param sr
    * @param user
    */
-  def create(sr: StreamRequest, user: User): Future[Option[StreamSession]] = {
+  def create(title:String, descriptionText:String, geoLocation:Option[GeoLocation], user: User): Future[Option[StreamSession]] = {
     val sha = java.security.MessageDigest.getInstance("SHA-256")
-    val hashable: String = sr.title + System.currentTimeMillis()
+    val hashable: String = title + System.currentTimeMillis()
     val streamID: String = (new HexBinaryAdapter()).marshal(sha.digest(hashable.getBytes()))
 
     StreamSession.generate(streamID, false).map { sess =>
 
       if(sess.isDefined) {
 
-        val stream = Stream(streamID, user.userID, sr.title, sr.descriptionText, sr.geoLocation, sess.get, true)
+        val stream = Stream(streamID, user.userID, title, descriptionText, geoLocation, sess.get, true)
         save(stream)
         sess
       } else None
@@ -212,8 +183,4 @@ object Stream {
 
 object StreamWithUser {
   implicit val streamWithUserFormats = Json.format[StreamWithUser]
-}
-
-object StreamRequest {
-  implicit val streamRequestFormat = Json.format[StreamRequest]
 }
