@@ -16,6 +16,19 @@ object Global extends GlobalSettings{
       // init push connection
       PNInit.doInit()
     }
+
+
+  override  def doFilter(action: EssentialAction):EssentialAction = EssentialAction { request =>
+    val origin = request.headers.get("origin").getOrElse("*")
+    Logger.debug(s"doFilter called for origin $origin")
+    action.apply(request).map(_.withHeaders(
+            "Access-Control-Allow-Origin" -> origin,
+            "Access-Control-Allow-Methods" -> "POST, GET, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Credentials" -> "true"
+    ))
+
+  }
+
 //
 //  override def doFilter(action: EssentialAction): EssentialAction = EssentialAction { request =>
 ////    println(request.domain)

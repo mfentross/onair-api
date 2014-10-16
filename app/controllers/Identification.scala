@@ -7,9 +7,9 @@ import play.modules.reactivemongo.json.collection.JSONCollection
 import models.{User, UserAccountRequest, UserLoginRequest, Session}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, JsValue, Json}
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter
-import controllers.helpers.{JSONError, JSONResponse, CORSActions}
+import controllers.helpers.{ResultStatus, JSONResponse, CORSActions}
 import java.util.UUID
 
 
@@ -28,7 +28,7 @@ object Identification extends Controller with MongoController {
     * @return
     */
   def getMe = Authenticated { ar =>
-    CORSActions.success(Json.toJson(ar.user))
+    Ok(JSONResponse.parseResult(Json.obj("users"->Json.toJson(ar.user)), ResultStatus.NO_ERROR))
   }
 
   /**
@@ -39,29 +39,27 @@ object Identification extends Controller with MongoController {
    * @return JSONObject with SessionToken
    */
   def register = Action.async(parse.json) { implicit request =>
-
-
     val udid: Option[String]= request.headers.get("udid")
     if(udid.isDefined) {
       request.body.validate[UserAccountRequest].map{ req =>
         val json = Json.obj("username" -> req.username ,"phonenumber" -> req.phonenumber, "email" -> req.email)
         userCollection.find(json).one[User].map { u =>
             if (u.isDefined) {
-              CORSActions.error(JSONResponse.fromJSONObject(Json.toJson(Map("error" -> "user already registered"))))
+              CORSActions.error(JSONResponse.parseResult(Json.obj(),ResultStatus.USERNAME_TAKEN))
             } else {
               val userID = User.createUser(req.firstname,req.lastname,req.username,req.email,req.password,req.phonenumber)
               val sessionID = Session.createNewSession(udid.get,userID)
-              CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(Map("sessionID" -> sessionID))))
+              CORSActions.success(JSONResponse.parseResult(Json.obj("sessionID" -> sessionID),ResultStatus.NO_ERROR))
             }
         }
       }.getOrElse(
           Future.successful(
-            CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))
+            CORSActions.error(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))
           )
         )
     } else {
       Future.successful(
-        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.MISSING_UDID)))
+        CORSActions.error(JSONResponse.parseResult(Json.obj(), ResultStatus.MISSING_UDID))
       )
     }
   }
@@ -95,17 +93,17 @@ object Identification extends Controller with MongoController {
           u =>
             if (u.isDefined) {
               val sessionID = models.Session.createNewSession(udid, u.get.userID)
-              CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(Map("sessionID" -> sessionID))),origin).withSession(
+              Ok(JSONResponse.parseResult(Json.obj("sessionID" -> sessionID),ResultStatus.NO_ERROR)).withSession(
                 "browserID" -> udid,
                 "sessionID" -> sessionID
               )
             } else {
-              CORSActions.success(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.WRONG_LOGIN)),origin)
+              Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.WRONG_LOGIN))
             }
         }
     }.getOrElse (
       Future.successful(
-        CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))
+        Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))
       )
     )
   }
@@ -118,7 +116,7 @@ object Identification extends Controller with MongoController {
     Session.setSessionInvalid(ar.user.userID,ar.request.headers.get("udid").get).map{ success =>
 //      if(success){
         // we always want to succeed the logout. so just always return a positive response
-        CORSActions.success(JSONResponse.fromJSONObject(Json.toJson(Map("status" -> "logged out"))), ar.request.headers.get("origin")).withNewSession
+        Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.NO_ERROR)).withNewSession
 
 //      }else {
 //        CORSActions.error(Json.toJson(Map("error" -> "could not log out")), ar.request.headers.get("origin"))withNewSession
@@ -139,7 +137,7 @@ object Identification extends Controller with MongoController {
       case None => false
     }
 
-    CORSActions.success(JSONResponse.fromJSONObject(Json.obj("loggedIn" -> loggedin)),mar.request.headers.get("origin"))
+    Ok(JSONResponse.parseResult(Json.obj("loggedIn" -> loggedin),ResultStatus.NO_ERROR))
   }
 
 

@@ -2,14 +2,14 @@ package controllers
 
 import models._
 import play.api.mvc._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import models.statics.Notifier
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Play.current
-import controllers.helpers.{JSONError, JSONResponse, CORSActions}
+import controllers.helpers.{ResultKeys, ResultStatus, JSONResponse, CORSActions}
 
 /**
  * Copyright: AppBuddy GmbH
@@ -38,9 +38,9 @@ object Users extends Controller {
           Follow.follow(followRequest.following, ar.user.userID, followRequest.activate)
         }
 
-        CORSActions.success(JSONResponse.fromJSONObject(Json.obj()))
+        Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.NO_ERROR))
 
-    }.getOrElse(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON))))
+    }.getOrElse(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON)))
   }
 
 
@@ -52,39 +52,39 @@ object Users extends Controller {
     ar.request.body.validate[SearchUserID].map{
       search =>
         User.getPublicUserByID(search.userID).map{ user =>
-          if(user.isDefined) CORSActions.success(JSONResponse.fromJSONObject(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.fromJSONObject(Json.obj()))
+          if(user.isDefined) Ok(JSONResponse.parseResult(Json.obj(ResultKeys.USERS.toString -> JsArray(Seq(Json.toJson(user.get)))),ResultStatus.NO_ERROR)) else Ok(JSONResponse.parseResult(Json.obj(ResultKeys.USERS.toString -> JsArray()),ResultStatus.OBJECT_NOT_FOUND))
         }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
+    }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
   }
 
-  def findUserByUsername = Authenticated.async(parse.json) { ar =>
-    ar.request.body.validate[SearchUserName].map{
-      search =>
-        User.getPublicUserByUsername(search.username).map{ user =>
-          if(user.isDefined) CORSActions.success(JSONResponse.fromJSONObject(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.fromJSONObject(Json.obj()))
-        }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
-  }
-
-  def findUserByName = Authenticated.async(parse.json) { ar =>
-    ar.request.body.validate[SearchName].map{
-      search =>
-        User.getPublicUserByName(search.name).map{ user =>
-          if(user.isDefined) CORSActions.success(JSONResponse.fromJSONObject(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.fromJSONObject(Json.obj()))
-        }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
-  }
-
-  def findUserByStreamID = Authenticated.async(parse.json) { ar =>
-    ar.request.body.validate[StreamID].map{ sID =>
-      models.Stream.getStreamByStreamID(sID.streamID).map{
-        maybeStream =>
-          maybeStream.map{ stream =>
-            CORSActions.success(Json.obj("user" -> Json.toJson(stream.user)))
-          }.getOrElse(CORSActions.error(Json.toJson(Map("error" -> "stream not found"))))
-      }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
-  }
+//  def findUserByUsername = Authenticated.async(parse.json) { ar =>
+//    ar.request.body.validate[SearchUserName].map{
+//      search =>
+//        User.getPublicUserByUsername(search.username).map{ user =>
+//          if(user.isDefined) CORSActions.success(JSONResponse.parseResult(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.parseResult(Json.obj()))
+//        }
+//    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.parseResult(Json.obj(), Option(ResultStatus.INVALID_JSON)))))
+//  }
+//
+//  def findUserByName = Authenticated.async(parse.json) { ar =>
+//    ar.request.body.validate[SearchName].map{
+//      search =>
+//        User.getPublicUserByName(search.name).map{ user =>
+//          if(user.isDefined) CORSActions.success(JSONResponse.parseResult(Json.obj("user" -> Json.toJson(user.get)))) else CORSActions.error(JSONResponse.parseResult(Json.obj()))
+//        }
+//    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.parseResult(Json.obj(), Option(ResultStatus.INVALID_JSON)))))
+//  }
+//
+//  def findUserByStreamID = Authenticated.async(parse.json) { ar =>
+//    ar.request.body.validate[StreamID].map{ sID =>
+//      models.Stream.getStreamByStreamID(sID.streamID).map{
+//        maybeStream =>
+//          maybeStream.map{ stream =>
+//            CORSActions.success(Json.obj("user" -> Json.toJson(stream.user)))
+//          }.getOrElse(CORSActions.error(Json.toJson(Map("error" -> "stream not found"))))
+//      }
+//    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.parseResult(Json.obj(), Option(ResultStatus.INVALID_JSON)))))
+//  }
 
 
   /**
@@ -95,9 +95,9 @@ object Users extends Controller {
   def findUsersByCue = Authenticated.async(parse.json) { ar =>
     ar.request.body.validate[Cue].map{ cue =>
       User.getPublicUsersByCue(cue.cue).map { users =>
-        CORSActions.success(JSONResponse.fromJSONObject(Json.obj("users" -> Json.toJson(users))))
+        Ok(JSONResponse.parseResult(Json.obj("users" -> Json.toJson(users)),ResultStatus.NO_ERROR))
       }
-    }.getOrElse(Future.successful(CORSActions.error(JSONResponse.fromJSONObject(Json.obj(), Option(JSONError.INVALID_JSON)))))
+    }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
   }
 
   def testUsersByCue(cue: String) = Action.async { implicit request =>

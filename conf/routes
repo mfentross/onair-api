@@ -22,9 +22,9 @@ OPTIONS     /*omg                          controllers.Application.preflight(omg
 GET         /users/me                      controllers.Identification.getMe
 POST        /users/follow                  controllers.Users.follow
 POST        /users/search/id               controllers.Users.findUserByID
-POST        /users/search/username         controllers.Users.findUserByUsername
-POST        /users/search/name             controllers.Users.findUserByName
-POST        /users/search/streamid         controllers.Users.findUserByStreamID
+#POST        /users/search/username         controllers.Users.findUserByUsername
+#POST        /users/search/name             controllers.Users.findUserByName
+#POST        /users/search/streamid         controllers.Users.findUserByStreamID
 POST        /users/search/cue              controllers.Users.findUsersByCue
 
 # Video
