@@ -34,7 +34,7 @@ object ResultStatus extends Enumeration {
 
   //No errors (or small ones...)
   val NO_ERROR       = Value(100, "no error")
-  val USERNAME_TAKEN = Value(101, "User already registered")
+  val USERNAME_TAKEN = Value(101, "user already registered")
   // parsing errors 2XX
   val INVALID_CHARSET = Value(201, "invalid charset")
   val INVALID_JSON = Value(202, "invalid json")
