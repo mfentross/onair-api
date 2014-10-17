@@ -124,7 +124,7 @@ object Stream extends Controller {
                     MessagesHandler.send(cm)
                   } else {
                     val uid = user.get.userID
-                    Logger.error(s"User $uid tried to send an insctruction to Stream $streamID but is not the owner!")
+                    Logger.error(s"User $uid tried to send an instruction to Stream $streamID but is not the owner!")
                   }
 
                 } else {

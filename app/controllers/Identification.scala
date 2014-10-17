@@ -39,29 +39,27 @@ object Identification extends Controller with MongoController {
    * @return JSONObject with SessionToken
    */
   def register = Action.async(parse.json) { implicit request =>
-    val udid: Option[String]= request.headers.get("udid")
-    if(udid.isDefined) {
+    val udid: String= request.headers.get("udid").getOrElse(UUID.randomUUID().toString())
       request.body.validate[UserAccountRequest].map{ req =>
         val json = Json.obj("username" -> req.username ,"phonenumber" -> req.phonenumber, "email" -> req.email)
         userCollection.find(json).one[User].map { u =>
             if (u.isDefined) {
-              CORSActions.error(JSONResponse.parseResult(Json.obj(),ResultStatus.USERNAME_TAKEN))
+              Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.USERNAME_TAKEN))
             } else {
               val userID = User.createUser(req.firstname,req.lastname,req.username,req.email,req.password,req.phonenumber)
-              val sessionID = Session.createNewSession(udid.get,userID)
-              CORSActions.success(JSONResponse.parseResult(Json.obj("sessionID" -> sessionID),ResultStatus.NO_ERROR))
+              val sessionID = Session.createNewSession(udid,userID)
+              Ok(JSONResponse.parseResult(Json.obj("sessionID" -> sessionID),ResultStatus.NO_ERROR)).withSession(
+                  "browserID" -> udid,
+                  "sessionID" -> sessionID
+              )
             }
         }
       }.getOrElse(
           Future.successful(
-            CORSActions.error(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))
+            Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))
           )
         )
-    } else {
-      Future.successful(
-        CORSActions.error(JSONResponse.parseResult(Json.obj(), ResultStatus.MISSING_UDID))
-      )
-    }
+
   }
 
 
@@ -112,16 +110,20 @@ object Identification extends Controller with MongoController {
    * The logout-function  is used to log out users. The previous session is set to be invalid.
    * @return
    */
-  def logout = Authenticated.async { ar =>
-    Session.setSessionInvalid(ar.user.userID,ar.request.headers.get("udid").get).map{ success =>
-//      if(success){
-        // we always want to succeed the logout. so just always return a positive response
-        Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.NO_ERROR)).withNewSession
+  def logout = Authenticated { ar =>
+    val udid: Option[String] = ar.request.headers.get("udid")
+    val browserID: Option[String] = ar.request.session.get("browserID")
 
-//      }else {
-//        CORSActions.error(Json.toJson(Map("error" -> "could not log out")), ar.request.headers.get("origin"))withNewSession
-//      }
-    }
+
+    if(udid.isDefined)
+      Session.setSessionInvalid(ar.user.userID,udid.get)
+
+    if(browserID.isDefined)
+      Session.setSessionInvalid(ar.user.userID,browserID.get)
+
+
+    Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.NO_ERROR)).withNewSession
+
   }
 
 
