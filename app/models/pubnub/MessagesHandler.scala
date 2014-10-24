@@ -1,5 +1,6 @@
 package models.pubnub
 
+import controllers.helpers.{ResultStatus, JSONResponse}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.iteratee.Concurrent
@@ -33,7 +34,10 @@ object MessagesHandler {
 
   def send(message: ChannelChatMessage) = {
 //    println("sending message")
-    val obj = new JSONObject(Json.toJson(message).toString)
+//    val obj = new JSONObject(Json.toJson(message).toString)
+
+    val s = JSONResponse.parseResult(Json.obj("message" -> Json.toJson(message)),ResultStatus.NO_ERROR)
+    val obj = new JSONObject(s.toString)
 //    println(obj)
     PNInit.sendMessage(obj)
   }

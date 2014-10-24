@@ -121,6 +121,7 @@ object Stream extends Controller {
                     // send instruction
                     val message = ChatMessageWithInstruction(unescapedMessage)
                     val cm = ChannelChatMessage(streamID, message)
+
                     MessagesHandler.send(cm)
                   } else {
                     val uid = user.get.userID
