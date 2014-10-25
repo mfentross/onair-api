@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json.{JsArray, JsValue, Json}
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter
-import controllers.helpers.{ResultStatus, JSONResponse, CORSActions}
+import controllers.helpers.{ResultKeys, ResultStatus, JSONResponse, CORSActions}
 import java.util.UUID
 
 
@@ -28,7 +28,8 @@ object Identification extends Controller with MongoController {
     * @return
     */
   def getMe = Authenticated { ar =>
-    Ok(JSONResponse.parseResult(Json.obj("users"->Json.toJson(ar.user)), ResultStatus.NO_ERROR))
+
+    Ok(JSONResponse.parseResult(Json.obj(ResultKeys.USERS.toString ->JsArray(Seq(Json.toJson(ar.user)))), ResultStatus.NO_ERROR))
   }
 
   /**
