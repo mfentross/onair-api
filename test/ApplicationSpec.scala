@@ -54,15 +54,15 @@ class ApplicationSpec extends Specification {
   //
   //  }
 
-//  "Identification" should {
-//    "respond to login with invalid json" in {
-////      val fr = FakeRequest(Helpers.POST, "/identify/login", FakeHeaders(), """ {"name": "New Group", "collabs": ["foo", "asdf"]} """)
-//      val result = controllers.Identification.login()(FakeRequest())
-//
-//      status(result) must equalTo(OK)
-//
-//    }
-//  }
+  "Identification" should {
+    "respond to login with invalid json" in {
+      val fr = FakeRequest(Helpers.POST, "/identify/login", FakeHeaders(), """ {"name": "New Group", "collabs": ["foo", "asdf"]} """)
+      val result = controllers.Identification.login()(FakeRequest())
+
+      status(result) must equalTo(OK)
+
+    }
+  }
 
 
 
