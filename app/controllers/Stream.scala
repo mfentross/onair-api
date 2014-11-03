@@ -176,7 +176,7 @@ object Stream extends Controller {
    */
   def getStreamByID(sID: String) = MaybeAuthenticated.async { mar =>
     models.Stream.getStreamByStreamID(sID: String).map { maybeStream =>
-      Ok(JSONResponse.parseResult(Json.obj("streamWithUser" -> Json.toJson(maybeStream))),ResultStatus.NO_ERROR)
+      Ok(JSONResponse.parseResult(Json.obj("streamWithUser" -> Json.toJson(maybeStream)),ResultStatus.NO_ERROR))
     }
   }
 
