@@ -2,6 +2,9 @@ package models
 
 import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits._
+import reactivemongo.api.Cursor
+
+import scala.concurrent.Future
 
 /**
  * Copyright: AppBuddy GmbH
@@ -60,5 +63,12 @@ object Follow {
    */
   def delete(following: String, follower: String) =
     Database.followCollection.remove(Follow(following, follower))
+
+  def followingUser(following: String, follower: String): Future[List[Follow]] = {
+    val cursor: Cursor[Follow] = Database.followCollection.
+      find(Json.obj("following" -> following, "follower" -> follower)).cursor[Follow]
+    cursor.collect[List]()
+
+  }
 
 }

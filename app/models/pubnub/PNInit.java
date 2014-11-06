@@ -15,7 +15,7 @@ import play.api.Logger;
 public class PNInit {
 
     private static String channel = "chat";
-    private static play.Logger.ALogger log = play.Logger.of("application");
+    private static play.Logger.ALogger log = play.Logger.of("PubNub stuff");
 
     public static void doInit() {
 
@@ -23,13 +23,13 @@ public class PNInit {
             PNConnection.connection().subscribe(channel, new Callback() {
                 @Override
                 public void successCallback(String s, Object o) {
-                    log.error(o.toString());
+//                    log.error(o.toString());
                     MessagesHandler.received(o);
                 }
 
                 @Override
                 public void successCallback(String s, Object o, String s2) {
-                    log.error(o.toString());
+//                    log.error(o.toString());
                     MessagesHandler.received(o);
                 }
 
@@ -69,11 +69,11 @@ public class PNInit {
 //        log.info(m.toString());
         Callback callback = new Callback() {
             public void successCallback(String channel, Object response) {
-                super.successCallback(channel, response);
+//                super.successCallback(channel, response);
                 log.info("PUBNUB sent");
             }
             public void errorCallback(String channel, PubnubError error) {
-                super.errorCallback(channel, error);
+//                super.errorCallback(channel, error);
                 log.error("PUBNUB error while sending: " + error.toString());
             }
         };

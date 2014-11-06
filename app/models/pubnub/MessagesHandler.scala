@@ -4,7 +4,7 @@ import controllers.helpers.{ResultStatus, JSONResponse}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.iteratee.Concurrent
-import controllers.{ChannelChatMessage, ChatMessage}
+import controllers._
 import org.json.JSONObject
 
 /**
@@ -17,23 +17,25 @@ object MessagesHandler {
 
   def received(message: Object) = {
     println("Actor received message")
-    //    println(s" message received: $message")
+    Logger.info(s" message received: !!!$message!!!")
     val json = Json.parse(message.toString)
-    val streamID = (json \ "channelID").toString.replace("\"", "")
-        println(streamID)
+    val streamID = (json \ "result" \ "message" \ "channelID").toString().replace("\"", "")
+//        println(streamID)
 
-    val test = (json \ "chatMessage").toString()
+//    val test = (json \ "chatMessage").toString()
 
 //    println(s"cm: $test")
 
-    println(s"Pushing to stream: $streamID")
+//    println(s"Pushing to stream: $streamID")
 
 //    controllers.Stream.broadcastMap.get(streamID).get._2.push((json \ "chatMessage"))
-    controllers.Stream.getBroadcastOrCreate(streamID)._2.push((json \ "chatMessage"))
+//    println(streamID)
+//    println((json \ "result" \ "message" \ "chatMessage").toString())
+    controllers.Stream.getBroadcastOrCreate(streamID)._2.push(json)
   }
 
   def send(message: ChannelChatMessage) = {
-//    println("sending message")
+    println("sending message")
 //    val obj = new JSONObject(Json.toJson(message).toString)
 
     val s = JSONResponse.parseResult(Json.obj("message" -> Json.toJson(message)),ResultStatus.NO_ERROR)

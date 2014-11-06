@@ -30,19 +30,21 @@ import julienrf.variants.Variants
  * Time: 17:56
  */
 
-sealed trait ChatMessage
+//sealed trait ChatMessage
 
-case class ChatMessageWithUser (user: PublicUser, message: String) extends ChatMessage
-case class ChatMessageWithInstruction(instruction: String) extends ChatMessage
+case class ChatMessageWithUser (user: PublicUser, message: String)
+case class ChatMessageWithInstruction(instruction: String)
 object ChatMessageWithUser {
-  implicit val chatMessageFormat = Variants.format[ChatMessage]
+//  implicit val chatMessageFormat = Json.format[ChatMessage]
   implicit val chatMessageWithUserFormat = Json.format[ChatMessageWithUser]
   implicit val chatMessageIFormat = Json.format[ChatMessageWithInstruction]
 }
 
-case class ChannelChatMessage(channelID: String, chatMessage: ChatMessage)
+case class ChannelChatMessage(channelID: String, chatMessage: Option[ChatMessageWithUser] = None,
+                              chatInstruction: Option[ChatMessageWithInstruction] = None)
 object ChannelChatMessage {
-  implicit val chatMessageFormat = Variants.format[ChatMessage]
+//  implicit val chatMessageFormat = Json.format[ChatMessage]
+implicit val chatMessageIFormat = Json.format[ChatMessageWithInstruction]
   implicit val channelChatMessageFormat = Json.format[ChannelChatMessage]
 }
 
@@ -81,6 +83,8 @@ object Stream extends Controller {
 
       // handle messages
       val in = Iteratee.foreach[JsValue] { event =>
+//        getBroadcastOrCreate(streamID)._2.push(event) // FIXME: FOR TESTING ONLY!
+//        println(event)
 
         // GET USER
         val sID: Option[String] = {
@@ -110,6 +114,8 @@ object Stream extends Controller {
 //            val message = ChatMessage(user.get, "test")
             // DANGER: next two lines because of error in SocketRocket that escapes "Message"
             val unescapedMessage = m.substring(1, m.length - 1)
+//            val unescapedMessage = (event \ "message").toString()
+            Logger.info(s"received: $unescapedMessage")
 
             // check if is instruction
             if(unescapedMessage contains("ONAIR_CHAT_INSTRUCTION_")) {
@@ -120,7 +126,7 @@ object Stream extends Controller {
                   if(stream.get.user.userID == user.get.userID) {
                     // send instruction
                     val message = ChatMessageWithInstruction(unescapedMessage)
-                    val cm = ChannelChatMessage(streamID, message)
+                    val cm = ChannelChatMessage(streamID, chatInstruction = Option(message))
 
                     MessagesHandler.send(cm)
                   } else {
@@ -137,7 +143,7 @@ object Stream extends Controller {
               // no instruction, just a regular message
               val message = ChatMessageWithUser(user.get, unescapedMessage)
 //              print(message)
-              val cm = ChannelChatMessage(streamID, message)
+              val cm = ChannelChatMessage(streamID, chatMessage = Option(message))
               //            println(message)
 
               //            redis.Connection.redis.publish("stream-chat", Json.toJson(ChannelChatMessage(streamID, message)).toString())
@@ -158,10 +164,10 @@ object Stream extends Controller {
    * load all active streams
    * @return
    */
-  def loadAll = Authenticated.async { ar =>
+  def loadAll = Action.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(list)),ResultStatus.NO_ERROR))
+        Ok(JSONResponse.parseResult(Json.obj("streamsWithUser" -> Json.toJson(list)),ResultStatus.NO_ERROR))
       }
     )
   }
@@ -205,7 +211,7 @@ object Stream extends Controller {
   def loadWithUser = Action.async { ar =>
     models.Stream.loadWithUser(models.Stream.loadAll).flatMap(promise =>
       promise.map { list =>
-        Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(list)),ResultStatus.NO_ERROR))
+        Ok(JSONResponse.parseResult(Json.obj("streamsWithUser" -> Json.toJson(list)),ResultStatus.NO_ERROR))
       }
     )
   }

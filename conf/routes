@@ -3,63 +3,64 @@
 # ~~~~
 
 # Home page
-GET         /                              controllers.Application.index
+GET            /                              controllers.Application.index
 
 
-OPTIONS     /*omg                          controllers.Application.preflight(omg)
+OPTIONS        /*omg                          controllers.Application.preflight(omg)
 
 # Identification
-POST        /identify/login                controllers.Identification.login
-OPTIONS     /identify/login                controllers.TestController.poop
-POST        /identify/register             controllers.Identification.register
-GET         /identify/logout               controllers.Identification.logout
-GET         /identify/loggedIn             controllers.Identification.loggedIn
+POST           /identify/login                controllers.Identification.login
+OPTIONS        /identify/login                controllers.TestController.poop
+POST           /identify/register             controllers.Identification.register
+GET            /identify/logout               controllers.Identification.logout
+GET            /identify/loggedIn             controllers.Identification.loggedIn
 
 # Options
-OPTIONS     /*omg                          controllers.Application.preflight(omg: String)
+OPTIONS        /*omg                          controllers.Application.preflight(omg: String)
 
 # Users
-GET         /users/me                      controllers.Identification.getMe
-POST        /users/follow                  controllers.Users.follow
-POST        /users/search/id               controllers.Users.findUserByID
+GET            /users/me                      controllers.Identification.getMe
+POST           /users/follow                  controllers.Users.follow
+GET            /users/following/:id           controllers.Users.followingUser(id: String)
+POST           /users/search/id               controllers.Users.findUserByID
 #POST        /users/search/username         controllers.Users.findUserByUsername
 #POST        /users/search/name             controllers.Users.findUserByName
 #POST        /users/search/streamid         controllers.Users.findUserByStreamID
-POST        /users/search/cue              controllers.Users.findUsersByCue
+POST           /users/search/cue              controllers.Users.findUsersByCue
 
 # Video
-GET         /ws/broadcast                  controllers.Application.receive
-GET         /ws/view                       controllers.Application.send
+GET            /ws/broadcast                  controllers.Application.receive
+GET            /ws/view                       controllers.Application.send
 
-GET         /view                          controllers.Application.view
-GET         /broadcast                     controllers.Application.broadcast
+GET            /view                          controllers.Application.view
+GET            /broadcast                     controllers.Application.broadcast
 
 # Text
-GET         /ws/pinger                     controllers.Application.pinger
-GET         /ws/client                     controllers.Application.pingSender
-GET         /viewText                      controllers.Application.viewText
-GET         /client                        controllers.Application.viewTextSender
+GET            /ws/pinger                     controllers.Application.pinger
+GET            /ws/client                     controllers.Application.pingSender
+GET            /viewText                      controllers.Application.viewText
+GET            /client                        controllers.Application.viewTextSender
 
 # Settings
-POST        /settings/avatar/upload        controllers.Settings.uploadAvatar
+POST           /settings/avatar/upload        controllers.Settings.uploadAvatar
 
 # TokSession
 
 # Stream
-GET         /stream/:sID/chat              controllers.Stream.chat(sID: String)
-GET         /stream/all                    controllers.Stream.loadAll
-POST        /stream/create                 controllers.Stream.create
-POST        /stream/close                  controllers.Stream.closeStream
-POST        /stream/getwithincoords        controllers.Stream.getWithinCoords
-GET         /stream/:sID                   controllers.Stream.getStreamByID(sID: String)
+GET            /stream/:sID/chat              controllers.Stream.chat(sID: String)
+GET            /stream/all                    controllers.Stream.loadAll
+POST           /stream/create                 controllers.Stream.create
+POST           /stream/close                  controllers.Stream.closeStream
+POST           /stream/getwithincoords        controllers.Stream.getWithinCoords
+GET            /stream/:sID                   controllers.Stream.getStreamByID(sID: String)
 
 # Testing
 #POST        /test/headers                  controllers.SessionHandler.testHeader
-GET         /test/streams                  controllers.Stream.loadWithUser
+GET            /test/streams                  controllers.Stream.loadWithUser
 #POST        /test/streamcreate             controllers.TestController.createTestStreamsInCoordinates
 #GET         /test/users/:c                 controllers.Users.testUsersByCue(c: String)
 
-POST        /yolo                           controllers.Application.testValidator
+POST           /yolo                          controllers.Application.testValidator
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                  controllers.Assets.at(path="/public", file)
+GET            /assets/*file                  controllers.Assets.at(path="/public", file)

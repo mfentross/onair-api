@@ -44,6 +44,13 @@ object Users extends Controller {
   }
 
 
+  def followingUser(userID: String) = Authenticated.async { ar =>
+
+    Follow.followingUser(userID, ar.user.userID).map { f =>
+      Ok(JSONResponse.parseResult(Json.obj("follows" -> f),ResultStatus.NO_ERROR))
+    }
+  }
+
   /**
    *
    * @return
@@ -92,10 +99,11 @@ object Users extends Controller {
    *
    * @return
    */
-  def findUsersByCue = Authenticated.async(parse.json) { ar =>
-    ar.request.body.validate[Cue].map{ cue =>
+  def findUsersByCue = Action.async(parse.json) { ar =>
+//    ar.request.body.validate[Cue].map{ cue =>
+    ar.body.validate[Cue].map{ cue =>
       User.getPublicUsersByCue(cue.cue).map { users =>
-        Ok(JSONResponse.parseResult(Json.obj("users" -> Json.toJson(users)),ResultStatus.NO_ERROR))
+        Ok(JSONResponse.parseResult(Json.obj("searchedUsers" -> Json.toJson(users)),ResultStatus.NO_ERROR))
       }
     }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
   }
