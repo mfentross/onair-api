@@ -61,6 +61,7 @@ object ResultKeys extends Enumeration {
   val USERS = Value("users")
   val STREAMS = Value("streams")
   val SESSIONID = Value("sessionID")
+  val AVATAR = Value("avatar")
 
 
 }
