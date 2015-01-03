@@ -40,6 +40,7 @@ GET            /ws/pinger                     controllers.Application.pinger
 GET            /ws/client                     controllers.Application.pingSender
 GET            /viewText                      controllers.Application.viewText
 GET            /client                        controllers.Application.viewTextSender
+GET            /push                          controllers.TestController.sendPush
 
 # Settings
 POST           /settings/avatar/upload        controllers.Settings.uploadAvatar

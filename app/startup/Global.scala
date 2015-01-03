@@ -11,11 +11,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object Global extends GlobalSettings{
 
-    override def onStart(app:Application){
-      S3Connection.init
-      // init push connection
-      PNInit.doInit()
-    }
+  override def onStart(app:Application){
+    S3Connection.init
+    // init push connection
+    PNInit.doInit()
+  }
 
 
   override  def doFilter(action: EssentialAction):EssentialAction = EssentialAction { request =>

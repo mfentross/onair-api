@@ -1,6 +1,7 @@
 package controllers
 
 import _root_.util.Coords
+import _root_.util.push.Push
 import controllers.helpers.{ResultStatus, JSONResponse, CORSActions}
 
 import scala.collection.mutable
@@ -197,6 +198,10 @@ object Stream extends Controller {
       streamRequest =>
         models.Stream.create(streamRequest.title, streamRequest.descriptionText, streamRequest.geoLocation, ar.user).map { sess =>
           if(sess.isDefined) {
+
+            // send push to all devices
+            Push.sendMessageToChannel(ar.user.firstname + " just started a new stream. Take a look!", "onair")
+
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
             //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
@@ -256,24 +261,24 @@ object Stream extends Controller {
           Logger.debug(s"Old bottom-right $qb")
 
           //Translating pb and qb to positive longitude values
-          val (p, q) = (Coords.translateLongitudePositive(pb), Coords.translateLongitudePositive(qb))
+//          val (p, q) = (Coords.translateLongitudePositive(pb), Coords.translateLongitudePositive(qb))
+//
+//          Logger.debug(s"New top-left: $p")
+//          Logger.debug(s"New bottom-right $q")
 
-          Logger.debug(s"New top-left: $p")
-          Logger.debug(s"New bottom-right $q")
-
-          models.Stream.getStreamsInCoordinates(p, q).flatMap { list =>
+          models.Stream.getStreamsInCoordinates(pb, qb).flatMap { list =>
             Logger.debug(list.toString())
-            val remapped = ArrayBuffer[Stream]()
-            list.map { stream =>
-
-              if (stream.geoLocation.isDefined) {
-                val geoLoc: Option[GeoLocation] = Some(Coords.translateLongitudeNegative(stream.geoLocation.get))
-                val st = models.Stream(stream.streamID, stream.userID, stream.title, stream.descriptionText, geoLoc, stream.session, stream.running)
-                remapped += st
-              }
-            }
-            Logger.debug("Streams: " + remapped.toList)
-            Future.successful(Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(remapped.toList)),ResultStatus.NO_ERROR)))
+//            val remapped = ArrayBuffer[Stream]()
+//            list.map { stream =>
+//
+//              if (stream.geoLocation.isDefined) {
+//                val geoLoc: Option[GeoLocation] = Some(Coords.translateLongitudeNegative(stream.geoLocation.get))
+//                val st = models.Stream(stream.streamID, stream.userID, stream.title, stream.descriptionText, geoLoc, stream.session, stream.running)
+//                remapped += st
+//              }
+//            }
+//            Logger.debug("Streams: " + remapped.toList)
+            Future.successful(Ok(JSONResponse.parseResult(Json.obj("streams" -> Json.toJson(list)),ResultStatus.NO_ERROR)))
 
           }
         } else {

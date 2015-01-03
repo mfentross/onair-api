@@ -5,6 +5,7 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 import util.Coords
+import util.push.ZeroPushiOS
 
 import scala.concurrent.Future
 import scala.util.Random
@@ -53,6 +54,12 @@ object TestController extends Controller{
 
   }
 
+
+  def sendPush = Action {
+    println("Token is: " + ZeroPushiOS.authToken)
+    ZeroPushiOS.sendMessageToChannel("hallo", "onair")
+    Ok("versuchts")
+  }
 
 
 
