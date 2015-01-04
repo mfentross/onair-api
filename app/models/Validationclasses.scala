@@ -25,7 +25,7 @@ object UserAccountRequest{
   implicit val userAccountRequestFormat = Json.format[UserAccountRequest]
 }
 
-case class UserLoginRequest(username: String, password: String)
+case class UserLoginRequest(email: String, password: String)
 object UserLoginRequest{
   implicit val userLoginRequestFormat = Json.format[UserLoginRequest]
 }

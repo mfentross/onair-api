@@ -82,13 +82,13 @@ object Identification extends Controller with MongoController {
     request.body.validate[UserLoginRequest].map {
       logInRequest =>
 
-        val username = logInRequest.username
+        val email = logInRequest.email
         val password = logInRequest.password
 
         val md5 = java.security.MessageDigest.getInstance("SHA-256")
         val pwHex: String = (new HexBinaryAdapter()).marshal(md5.digest(password.getBytes()))
 
-        userCollection.find(Json.obj("username" -> username, "password" -> pwHex)).one[User].map {
+        userCollection.find(Json.obj("email" -> email, "password" -> pwHex)).one[User].map {
           u =>
             if (u.isDefined) {
               val sessionID = models.Session.createNewSession(udid, u.get.userID)
@@ -135,10 +135,7 @@ object Identification extends Controller with MongoController {
    * @return
    */
   def loggedIn = MaybeAuthenticated { mar =>
-    val loggedin: Boolean = mar.user match {
-      case Some(user) => true
-      case None => false
-    }
+    val loggedin: Boolean = mar.user.isDefined
 
     Ok(JSONResponse.parseResult(Json.obj("loggedIn" -> loggedin),ResultStatus.NO_ERROR))
   }
