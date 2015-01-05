@@ -55,6 +55,17 @@ object TestController extends Controller{
   }
 
 
+  def createSingleStream = Action.async {
+
+    User.getUserExistence("userID", "1B06EE84FC91FEA9BF18A56537E4C0AF83F0535F9B4495BBD30BCDE0BE347A72").map { user =>
+      val sr = StreamRequest("High five", "yolololo", None)
+      models.Stream.create(sr.title, sr.descriptionText, sr.geoLocation, user.get)
+
+      Ok("done")
+    }
+
+  }
+
   def sendPush = Action {
     println("Token is: " + ZeroPushiOS.authToken)
     ZeroPushiOS.sendMessageToChannel("hallo", "onair")

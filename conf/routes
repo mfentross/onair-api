@@ -40,7 +40,6 @@ GET            /ws/pinger                     controllers.Application.pinger
 GET            /ws/client                     controllers.Application.pingSender
 GET            /viewText                      controllers.Application.viewText
 GET            /client                        controllers.Application.viewTextSender
-GET            /push                          controllers.TestController.sendPush
 
 # Settings
 POST           /settings/avatar/upload        controllers.Settings.uploadAvatar
@@ -60,6 +59,8 @@ GET            /stream/:sID                   controllers.Stream.getStreamByID(s
 GET            /test/streams                  controllers.Stream.loadWithUser
 #POST        /test/streamcreate             controllers.TestController.createTestStreamsInCoordinates
 #GET         /test/users/:c                 controllers.Users.testUsersByCue(c: String)
+GET            /push                          controllers.TestController.sendPush
+GET            /cs                           controllers.TestController.createSingleStream
 
 POST           /yolo                          controllers.Application.testValidator
 

@@ -49,11 +49,14 @@ object Stream {
     StreamSession.generate(streamID, false).map { sess =>
 
       if(sess.isDefined) {
-
+        println(sess)
         val stream = Stream(streamID, user.userID, title, descriptionText, geoLocation, sess.get, true)
         save(stream)
         sess
-      } else None
+      } else {
+        Logger.error(s"Could not create StreamSession for streamID $streamID")
+        None
+      }
 
     }
   }

@@ -197,6 +197,7 @@ object Stream extends Controller {
     ar.request.body.validate[StreamRequest].map {
       streamRequest =>
         models.Stream.create(streamRequest.title, streamRequest.descriptionText, streamRequest.geoLocation, ar.user).map { sess =>
+//          println(sess)
           if(sess.isDefined) {
 
             // send push to all devices
@@ -205,7 +206,7 @@ object Stream extends Controller {
             println("creating websocket for stream " + sess.get.streamID)
             broadcastMap += sess.get.streamID -> Concurrent.broadcast[JsValue]
             //          redis.Connection.redis.publish("stream-chat", "") // FIXME: add notification that stream was created
-            Ok(JSONResponse.parseResult(Json.obj("session" -> Json.toJson(sess)),ResultStatus.NO_ERROR))
+            Ok(JSONResponse.parseResult(Json.obj("session" -> Json.toJson(sess.get)),ResultStatus.NO_ERROR))
           } else
             CORSActions.error(Json.toJson(Map("error" -> "could not create session")))
         }
