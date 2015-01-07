@@ -5,7 +5,7 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 import util.Coords
-import util.push.ZeroPushiOS
+import util.push.{Push, ZeroPushiOS}
 
 import scala.concurrent.Future
 import scala.util.Random
@@ -68,7 +68,8 @@ object TestController extends Controller{
 
   def sendPush = Action {
 //    println("Token is: " + ZeroPushiOS.authToken)
-    ZeroPushiOS.sendMessageToChannel("Die Pushfunktion ist jetzt verfügbar!", "onair")
+//    ZeroPushiOS.sendMessageToChannel("Die Pushfunktion ist jetzt verfügbar!", "onair")
+    Push.sendMessageToChannel("Die Pushfunktion ist jetzt verfügbar!", "onair")
     Ok("versuchts")
   }
 
