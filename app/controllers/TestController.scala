@@ -67,8 +67,8 @@ object TestController extends Controller{
   }
 
   def sendPush = Action {
-    println("Token is: " + ZeroPushiOS.authToken)
-    ZeroPushiOS.sendMessageToChannel("hallo", "onair")
+//    println("Token is: " + ZeroPushiOS.authToken)
+    ZeroPushiOS.sendMessageToChannel("Die Pushfunktion ist jetzt verfügbar!", "onair")
     Ok("versuchts")
   }
 

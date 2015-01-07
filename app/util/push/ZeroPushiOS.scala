@@ -11,14 +11,28 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * Created by maltefentross on 01.01.15.
  */
 object ZeroPushiOS extends ZeroPush {
+
+  private val _prodAuthToken: String = "appprod_VpkjtbruJKkB76zKhs5S"
+  private val _devAuthToken: String = "appdev_isqVAxTxqMNq2MxaDF87"
+
   /**
    * zero push specific credentials. There is a production and a
    * development mode, so there are actually two auth tokens.
    */
-  def authToken: String = Definitions.isProductivityMode match {
-    case true => "appprod_VpkjtbruJKkB76zKhs5S"
-    case false => "appdev_isqVAxTxqMNq2MxaDF87"
+  def authToken(forceProductionMode: Option[Boolean] = None,
+                forceDevelopMode: Option[Boolean] = None): String = {
+    if (forceDevelopMode.getOrElse(false) && !forceDevelopMode.getOrElse(false)) {
+      _devAuthToken
+    }else if (!forceDevelopMode.getOrElse(false) && forceDevelopMode.getOrElse(false)) {
+      _prodAuthToken
+    } else {
+      Definitions.isProductivityMode match {
+        case true => _prodAuthToken
+        case false => _devAuthToken
+      }
+    }
   }
+
 
   /**
    *
@@ -28,12 +42,14 @@ object ZeroPushiOS extends ZeroPush {
    * @param message
    * @param channel
    */
-  override def sendMessageToChannel(message: String, channel: String): Unit =
+  override def sendMessageToChannel(message: String, channel: String,
+                                    forceProductionMode: Option[Boolean] = None,
+                                    forceDevelopMode: Option[Boolean] = None): Unit =
     getUrl(URLDestination.SendMessageToChannel, Option(channel)) match {
       case Some(url) => {
         println(url)
         WS.url(url).withHeaders("Content-Type" -> "application/json").post(Json.obj(
-          "auth_token" -> authToken,
+          "auth_token" -> authToken(forceProductionMode, forceDevelopMode),
           "alert" -> message,
           "badge" -> 1
         )).map { response =>

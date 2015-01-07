@@ -37,7 +37,8 @@ trait ZeroPush {
    * zero push specific credentials. There is a production and a
    * development mode, so there are actually two auth tokens.
    */
-  def authToken: String
+  def authToken(forceProductionMode: Option[Boolean] = None,
+                forceDevelopMode: Option[Boolean] = None): String
 
   /**
    *
@@ -47,7 +48,9 @@ trait ZeroPush {
    * @param message
    * @param channel
    */
-  def sendMessageToChannel(message: String, channel: String): Unit
+  def sendMessageToChannel(message: String, channel: String,
+                           forceProductionMode: Option[Boolean] = None,
+                           forceDevelopMode: Option[Boolean] = None): Unit
 
 
 }

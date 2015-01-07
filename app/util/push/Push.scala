@@ -17,7 +17,8 @@ object Push {
    */
   def sendMessageToChannel(message: String, channel: String): Unit = {
 
-    ZeroPushiOS.sendMessageToChannel(message, channel)
+    ZeroPushiOS.sendMessageToChannel(message, channel, forceDevelopMode = Some(true)) // send to dev devices
+    ZeroPushiOS.sendMessageToChannel(message, channel, forceProductionMode = Some(true)) // send to prod devices
 
     // TODO: call android functions here
 
