@@ -21,9 +21,9 @@ object ZeroPushiOS extends ZeroPush {
    */
   def authToken(forceProductionMode: Option[Boolean] = None,
                 forceDevelopMode: Option[Boolean] = None): String = {
-    if (forceDevelopMode.getOrElse(false) && !forceDevelopMode.getOrElse(false)) {
+    if (forceDevelopMode.getOrElse(false) && !forceProductionMode.getOrElse(false)) {
       _devAuthToken
-    }else if (!forceDevelopMode.getOrElse(false) && forceDevelopMode.getOrElse(false)) {
+    }else if (!forceDevelopMode.getOrElse(false) && forceProductionMode.getOrElse(false)) {
       _prodAuthToken
     } else {
       Definitions.isProductivityMode match {
@@ -47,13 +47,13 @@ object ZeroPushiOS extends ZeroPush {
                                     forceDevelopMode: Option[Boolean] = None): Unit =
     getUrl(URLDestination.SendMessageToChannel, Option(channel)) match {
       case Some(url) => {
-        println(url)
+        Logger.debug(s"Seding message to channel with url: $url and auth token: " + authToken(forceProductionMode, forceDevelopMode))
         WS.url(url).withHeaders("Content-Type" -> "application/json").post(Json.obj(
           "auth_token" -> authToken(forceProductionMode, forceDevelopMode),
           "alert" -> message,
           "badge" -> 1
         )).map { response =>
-          Logger.info("Sent message to channel: " + channel + ", reponse: " + response.body)
+          Logger.info(s"Sent message to channel: $channel, reponse: " + response.body)
         }
       }
 
