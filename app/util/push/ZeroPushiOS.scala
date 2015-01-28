@@ -51,6 +51,7 @@ object ZeroPushiOS extends ZeroPush {
         WS.url(url).withHeaders("Content-Type" -> "application/json").post(Json.obj(
           "auth_token" -> authToken(forceProductionMode, forceDevelopMode),
           "alert" -> message,
+          "sound" -> "yeah.mp3",
           "badge" -> 1
         )).map { response =>
           Logger.info(s"Sent message to channel: $channel, reponse: " + response.body)
