@@ -49,6 +49,8 @@ object Database {
    */
   def followCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("follow")
 
+  def groupCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("group")
+
 
 }
 

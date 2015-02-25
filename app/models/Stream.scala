@@ -20,7 +20,7 @@ import scala.util.parsing.json.JSONArray
  * Time: 15:35
  */
 
-case class Stream(streamID: String, userID: String, title: String, descriptionText: String, geoLocation: Option[GeoLocation], session: StreamSession, running: Boolean)
+case class Stream(streamID: String, userID: String, title: String, descriptionText: String, geoLocation: Option[GeoLocation], session: StreamSession, viewers: Long, running: Boolean)
 
 
 /**
@@ -50,7 +50,7 @@ object Stream {
 
       if(sess.isDefined) {
         println(sess)
-        val stream = Stream(streamID, user.userID, title, descriptionText, geoLocation, sess.get, true)
+        val stream = Stream(streamID, user.userID, title, descriptionText, geoLocation, sess.get, 0, true)
         save(stream)
         sess
       } else {
@@ -71,6 +71,21 @@ object Stream {
     }
   }
 
+  def updateViewers(streamID: String, viewers: Long): Future[Boolean] = {
+    val json = Json.obj("streamID"->streamID)
+    val mod = Json.obj("$set"->Json.obj("viewers"->viewers))
+
+    streamCollection.update(json, mod).map{lastError =>
+      Logger.debug(s"Updated stream viewer count: $lastError")
+      lastError.ok
+    }
+  }
+
+  /**
+   * Load all streams / Only for development
+   *
+   * @return
+   */
   def loadAll: Future[Seq[Stream]] = {
     val cursor:Cursor[Stream] = Database.streamCollection.find(Json.obj("running" -> true)).cursor[Stream]
 

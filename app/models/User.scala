@@ -1,6 +1,6 @@
 package models
 
-import play.api.libs.json.{Writes, Json}
+import play.api.libs.json.{JsArray, JsObject, Writes, Json}
 import play.modules.reactivemongo.json.collection.JSONCollection
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -144,6 +144,38 @@ object User {
    */
   def getUserExistence(by:String, value:String) = {
     userCollection.find(Json.obj(by -> value)).one[User]
+  }
+
+
+  /**
+   * load users by list of ids
+   *
+   * @param userIDs
+   * @return
+   */
+  def getPublicUsersByIDs(userIDs: Seq[String]): Future[Seq[PublicUser]] = {
+
+    val query = Json.obj("userID" -> Json.obj("$or" -> Json.toJson(userIDs)))
+    userCollection.find(query).cursor[PublicUser].collect[List]()
+  }
+
+
+  /**
+   *
+   * Send list of phone numbers and return public profiles of registered users
+   *
+   * @param numbers
+   * @return
+   */
+  def loadRegisteredUsersByPhoneNumbers(numbers: Seq[String]): Future[Seq[PublicUser]] = {
+
+    val required: JsArray = numbers.map { n =>
+        Json.obj("phonenumber" -> n)
+      }.foldLeft(JsArray())((acc, x) => acc ++ Json.arr(x))
+
+    val query = Json.obj("$or" -> required)
+
+    userCollection.find(query).cursor[PublicUser].collect[List]()
   }
 
   /**

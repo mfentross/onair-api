@@ -34,7 +34,7 @@ import julienrf.variants.Variants
 //sealed trait ChatMessage
 
 case class ChatMessageWithUser (user: PublicUser, message: String)
-case class ChatMessageWithInstruction(instruction: String)
+case class ChatMessageWithInstruction(instruction: String, data: Option[String] = None)
 object ChatMessageWithUser {
 //  implicit val chatMessageFormat = Json.format[ChatMessage]
   implicit val chatMessageWithUserFormat = Json.format[ChatMessageWithUser]
@@ -124,15 +124,32 @@ object Stream extends Controller {
                 if(stream.isDefined) {
 
                   // check if owner of stream is current user
-                  if(stream.get.user.userID == user.get.userID) {
+                  // TODO: refactor
+                  if (stream.get.user.userID != user.get.userID) { // only count for real viewers
+                    // user enters / leaves
+                    // actually should use a semaphore here
+                    // TODO: make enumerators for enter and leave
+                    val beforeViewers: Long = stream.get.stream.viewers
+                    val viewers: Long = unescapedMessage match {
+                      case "ONAIR_CHAT_INSTRUCTION_ENTERING" => beforeViewers + 1
+                      case "ONAIR_CHAT_INSTRUCTION_LEAVING" => beforeViewers - 1
+                    }
+
+                    models.Stream.updateViewers(streamID, viewers) // save new counter in db
+
+                    // notify clients for new viewers count
+                    val instruction = "ONAIR_CHAT_INSTRUCTION_VIEWERS"
+                    val message = ChatMessageWithInstruction(instruction, Option(viewers.toString))
+                    val cm = ChannelChatMessage(streamID, chatInstruction = Option(message))
+
+
+                    MessagesHandler.send(cm)
+                  } else if(stream.get.user.userID == user.get.userID) { // execute instruction
                     // send instruction
                     val message = ChatMessageWithInstruction(unescapedMessage)
                     val cm = ChannelChatMessage(streamID, chatInstruction = Option(message))
 
                     MessagesHandler.send(cm)
-                  } else {
-                    val uid = user.get.userID
-                    Logger.error(s"User $uid tried to send an instruction to Stream $streamID but is not the owner!")
                   }
 
                 } else {

@@ -35,6 +35,11 @@ object SearchUserID{
   implicit val suIDFormat = Json.format[SearchUserID]
 }
 
+case class SearchUsersPhoneNumbers(numbers: Seq[String])
+object SearchUsersPhoneNumbers{
+  implicit val suPNFormat = Json.format[SearchUsersPhoneNumbers]
+}
+
 case class SearchUserName(username:String)
 object SearchUserName{
   implicit val sunFormat = Json.format[SearchUserName]
@@ -86,4 +91,24 @@ case class StreamRequest(title: String, descriptionText: String, geoLocation: Op
 
 object StreamRequest {
   implicit val streamRequestFormat = Json.format[StreamRequest]
+}
+
+
+/**
+ *
+ * request group
+ *
+ * @param name
+ * @param members
+ */
+case class GroupRequest(name: String, members: Seq[String])
+
+object GroupRequest {
+  implicit val groupRequestFormat = Json.format[GroupRequest]
+}
+
+case class MultipleUserIDs(userIDs: Seq[String])
+
+object MultipleUserIDs {
+  implicit val multipleUserIDsFormat = Json.format[MultipleUserIDs]
 }

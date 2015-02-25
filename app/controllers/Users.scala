@@ -1,6 +1,7 @@
 package controllers
 
 import models._
+import play.api.Logger
 import play.api.mvc._
 import play.api.libs.json.{JsArray, Json}
 import models.statics.Notifier
@@ -62,6 +63,42 @@ object Users extends Controller {
           if(user.isDefined) Ok(JSONResponse.parseResult(Json.obj(ResultKeys.USERS.toString -> JsArray(Seq(Json.toJson(user.get)))),ResultStatus.NO_ERROR)) else Ok(JSONResponse.parseResult(Json.obj(ResultKeys.USERS.toString -> JsArray()),ResultStatus.OBJECT_NOT_FOUND))
         }
     }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
+  }
+
+
+  /**
+   * find multiple users by their id
+   *
+   * @return
+   */
+  def findUsersByIDs = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[MultipleUserIDs].map{
+      m =>
+        User.getPublicUsersByIDs(m.userIDs).map{ users =>
+          Ok(JSONResponse.parseResult(Json.obj("searchedUsers" -> Json.toJson(users)),ResultStatus.NO_ERROR))
+        }
+    }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
+  }
+
+  /**
+   *
+   *
+   *
+   * @return
+   */
+  def findUsersByPhoneNumber = Authenticated.async(parse.json) { ar =>
+    ar.request.body.validate[SearchUsersPhoneNumbers].map{
+      search =>
+
+
+        User.loadRegisteredUsersByPhoneNumbers(search.numbers).map { users =>
+          Ok(JSONResponse.parseResult(Json.obj("searchedUsers" -> Json.toJson(users)),ResultStatus.NO_ERROR))
+        }
+
+    }.getOrElse({
+      Logger.error("Body: " + ar.request.body)
+      Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON)))
+    })
   }
 
 //  def findUserByUsername = Authenticated.async(parse.json) { ar =>
