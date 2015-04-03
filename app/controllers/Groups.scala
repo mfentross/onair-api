@@ -4,9 +4,11 @@ import controllers.Stream._
 import controllers.Users._
 import controllers.helpers.{ResultStatus, JSONResponse}
 import models.{Group, GroupRequest, Follow, FollowRequest}
+import play.api.Logger
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.Json
 import play.api.mvc.{Controller, Action}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
@@ -32,11 +34,12 @@ object Groups extends Controller {
    *
    * @return
    */
-  def loadMyGroups = Authenticated.async { ar =>
+  def loadMyGroups = Authenticated { ar =>
 
-    Group.getGroupsOfUser(ar.user.userID).map { groups =>
-      Ok(JSONResponse.parseResult(Json.obj("groups" -> Json.toJson(groups)), ResultStatus.NO_ERROR))
-    }
+
+    Ok(JSONResponse.parseResult(Json.obj("groups" ->
+      Json.toJson(Group.getGroupsOfUsersWithMemberObjects(ar.user.userID))), ResultStatus.NO_ERROR))
+
   }
 
   /**
@@ -50,7 +53,7 @@ object Groups extends Controller {
       req =>
 
         Group.create(ar.user.userID, req.name, req.members).map { e =>
-          Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.NO_ERROR))
+          Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.NO_ERROR))
         }
 
     }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
@@ -68,7 +71,7 @@ object Groups extends Controller {
       g =>
 
         Group.update(ar.user.userID, g).map { b =>
-          Ok(JSONResponse.parseResult(Json.obj(),ResultStatus.NO_ERROR))
+          Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.NO_ERROR))
         }
 
     }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))

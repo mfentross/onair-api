@@ -155,7 +155,11 @@ object User {
    */
   def getPublicUsersByIDs(userIDs: Seq[String]): Future[Seq[PublicUser]] = {
 
-    val query = Json.obj("userID" -> Json.obj("$or" -> Json.toJson(userIDs)))
+    val required: JsArray = userIDs.map { id =>
+      Json.obj("userID" -> id)
+    }.foldLeft(JsArray())((acc, x) => acc ++ Json.arr(x))
+
+    val query = Json.obj("$or" -> required)
     userCollection.find(query).cursor[PublicUser].collect[List]()
   }
 
