@@ -52,6 +52,9 @@ object ResultStatus extends Enumeration {
   val WRONG_LOGIN = Value(400, "wrong credentials")
   val HEADERS_MISSING = Value(401, "missing udid or session id")
 
+  // auth
+  val NOT_AUTHORIZED = Value(600, "not authorized")
+
 
 }
 

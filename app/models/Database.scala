@@ -52,6 +52,9 @@ object Database {
   def groupCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("group")
 
 
+  def groupMessageCollection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("groupMessage")
+
+
 }
 
 

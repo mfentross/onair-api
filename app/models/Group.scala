@@ -2,9 +2,14 @@ package models
 
 import java.util.UUID
 
+import controllers.ChannelChatMessage
+import controllers.helpers.{ResultStatus, JSONResponse}
+import models.pubnub.PNInit
+import org.json.JSONObject
 import play.api.Logger
 import play.api.libs.json.Json
 import play.modules.reactivemongo.json.collection.JSONCollection
+import util.push.Push
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -31,6 +36,8 @@ object Group {
   implicit val groupFormat = Json.format[Group]
   def groupCollection: JSONCollection = Database.groupCollection
 
+  def groupMessageCollection: JSONCollection = Database.groupMessageCollection
+
 
   /**
    *
@@ -52,6 +59,10 @@ object Group {
     }
   }
 
+
+  /**
+   * db.group.find({"members":{"$elemMatch":"A39277AC3DD10FEE6650CCBBF7E309CD77A9CFF22C2B55B05997FF632514A27D"}})
+   */
   /**
    *
    * load group by group id
@@ -130,6 +141,54 @@ object Group {
       Logger.debug("lasterror ok: "+lastError.ok)
       Logger.debug(s"Group successfully updated with lastError: $lastError")
       lastError.ok
+    }
+  }
+
+
+  /**
+   *
+   * send message to group
+   * this also saves the message and publishes it over pubnub and zeropush
+   *
+   * @param message
+   */
+  def sendMessage(message: ChatRoomMessage) = {
+
+    // save in db
+    groupMessageCollection.save(message)
+
+    // send to pubnub
+    val obj = new JSONObject(message.toString)
+    PNInit.sendMessageToChannel(message.roomID, obj)
+
+    // send to zero push
+    val m = message.userID + ": " + message.message
+
+    Push.sendMessageToChannel(m, message.roomID)
+
+  }
+
+  /**
+   *
+   * checks if user is member of given group
+   *
+   * @param userID
+   * @param groupID
+   * @return
+   */
+  def isMember(userID: String, groupID: String): Future[Boolean] = {
+    groupCollection.find(Json.obj(
+      "$and" -> Json.arr(
+        Json.obj("$or" ->
+          Json.arr(
+            Json.obj("members" -> userID), Json.obj("creatorID" -> userID))
+          ),
+        Json.obj("groupID" -> groupID)
+        )
+      )
+    )
+      .one[Group].map { group =>
+      group.isDefined
     }
   }
 

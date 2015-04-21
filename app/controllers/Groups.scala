@@ -2,8 +2,9 @@ package controllers
 
 import controllers.Stream._
 import controllers.Users._
-import controllers.helpers.{ResultStatus, JSONResponse}
-import models.{Group, GroupRequest, Follow, FollowRequest}
+//import controllers.helpers._
+import helpers._
+import models._
 import play.api.Logger
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.Json
@@ -75,6 +76,28 @@ object Groups extends Controller {
         }
 
     }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
+  }
+
+
+  def sendMessage(groupID: String) = Authenticated.async(parse.json) { ar =>
+
+    Group.isMember(ar.user.userID, groupID).map { member =>
+
+      if(member) {
+
+        ar.request.body.validate[ChatRoomMessage].map {
+          m =>
+
+            Group.sendMessage(m)
+            Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.NO_ERROR))
+        }.getOrElse(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON)))
+
+      } else {
+        BadRequest(JSONResponse.parseResult(Json.obj(), ResultStatus.NOT_AUTHORIZED))
+      }
+
+    }
+
   }
 
 

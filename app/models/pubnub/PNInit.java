@@ -80,4 +80,20 @@ public class PNInit {
         PNConnection.connection().publish(channel, m, callback);
     }
 
+
+    public static void sendMessageToChannel(String channel, org.json.JSONObject m) {
+//        log.info(m.toString());
+        Callback callback = new Callback() {
+            public void successCallback(String channel, Object response) {
+//                super.successCallback(channel, response);
+                log.info("PUBNUB sent");
+            }
+            public void errorCallback(String channel, PubnubError error) {
+//                super.errorCallback(channel, error);
+                log.error("PUBNUB error while sending: " + error.toString());
+            }
+        };
+        PNConnection.connection().publish(channel, m, callback);
+    }
+
 }

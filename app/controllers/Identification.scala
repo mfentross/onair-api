@@ -82,6 +82,8 @@ object Identification extends Controller with MongoController {
     request.body.validate[UserLoginRequest].map {
       logInRequest =>
 
+        println("valid")
+
         val email = logInRequest.email
         val password = logInRequest.password
 
@@ -100,11 +102,12 @@ object Identification extends Controller with MongoController {
               Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.WRONG_LOGIN))
             }
         }
-    }.getOrElse (
+    }.getOrElse {
+      println("invalid " + request.body)
       Future.successful(
         Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))
       )
-    )
+    }
   }
 
   /**
