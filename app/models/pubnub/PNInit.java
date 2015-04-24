@@ -83,13 +83,17 @@ public class PNInit {
 
     public static void sendMessageToChannel(String channel, org.json.JSONObject m) {
 //        log.info(m.toString());
+        System.out.println("message: " + m.toString());
+        log.debug("Sending Chat Message to channel");
         Callback callback = new Callback() {
             public void successCallback(String channel, Object response) {
 //                super.successCallback(channel, response);
+                System.out.println("SENT :)");
                 log.info("PUBNUB sent");
             }
             public void errorCallback(String channel, PubnubError error) {
 //                super.errorCallback(channel, error);
+                System.out.println("DIDNT SENT :(");
                 log.error("PUBNUB error while sending: " + error.toString());
             }
         };

@@ -50,6 +50,8 @@ POST           /settings/avatar/upload          controllers.Settings.uploadAvata
 GET            /group/loadMyGroups              controllers.Groups.loadMyGroups
 POST           /group/create                    controllers.Groups.createGroup
 POST           /group/update                    controllers.Groups.updateGroup
+POST           /group/sendMessage/:id           controllers.Groups.sendMessage(id: String)
+POST           /group/messages                  controllers.Groups.loadMessagesForGroup
 
 # TokSession
 

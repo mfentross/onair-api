@@ -1,6 +1,6 @@
 package models
 
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import controllers.ChannelChatMessage
 import controllers.helpers.{ResultStatus, JSONResponse}
@@ -21,9 +21,14 @@ import scala.concurrent.duration._
 // members stores user ids
 case class Group (groupID: String, name: String, creatorID: String, members: Seq[String])
 case class GroupWithMembers (groupID: String, name: String, creatorID: String, members: Seq[PublicUser])
+case class GroupMessagesRequest (groupID: String, start: Date, limit: Int)
 
 object GroupWithMembers {
   implicit val groupWUFormat = Json.format[GroupWithMembers]
+}
+
+object GroupMessagesRequest {
+  implicit val groupMR = Json.format[GroupMessagesRequest]
 }
 
 /**
@@ -111,7 +116,9 @@ object Group {
 
 
       if(group.members.size > 0){
-        val users: Seq[PublicUser] = Await.result(User.getPublicUsersByIDs(group.members), 60 seconds)
+        var users: Seq[PublicUser] = Seq[PublicUser](Await.result(User.getPublicUserByID(group.creatorID).map(_.get), 60 seconds))
+        val usersToAdd: Seq[PublicUser] = Await.result(User.getPublicUsersByIDs(group.members), 60 seconds)
+        users = users ++ usersToAdd
         groups :+= GroupWithMembers(group.groupID, group.name, group.creatorID, users)
       }else {
         groups :+= GroupWithMembers(group.groupID, group.name, group.creatorID, List[PublicUser]())
@@ -152,21 +159,43 @@ object Group {
    *
    * @param message
    */
-  def sendMessage(message: ChatRoomMessage) = {
-
+  def sendMessage(message: ChatRoomMessage): Future[Boolean] =
     // save in db
-    groupMessageCollection.save(message)
+    groupMessageCollection.save(message).map { e =>
+      if(e.ok) {
+        // message saved -> send to pubnub
+        val obj = new JSONObject(Json.toJson(message).toString())
+        PNInit.sendMessageToChannel(message.roomID, obj)
 
-    // send to pubnub
-    val obj = new JSONObject(message.toString)
-    PNInit.sendMessageToChannel(message.roomID, obj)
+        // send to zero push
+        // TODO: make this async
+        val m = message.userID + ": " + message.message
 
-    // send to zero push
-    val m = message.userID + ": " + message.message
+        Push.sendMessageToChannel(m, message.roomID)
+        true
+      } else {
+        Logger.error("Unable to save ChatRoomMessage: " + e.errMsg)
+        false
+      }
+    }
 
-    Push.sendMessageToChannel(m, message.roomID)
 
-  }
+  // sort by date FIXME: is this correct?
+  /**
+   *
+   * gets messages for group with limitation by date and integer
+   *
+   * @param group
+   * @param start
+   * @param limit
+   * @return
+   */
+  def loadMessagesForGroup(group: String, start: java.util.Date, limit: Int): Future[Seq[ChatRoomMessage]] =
+    groupMessageCollection
+      .find(Json.obj("roomID" -> group, "date" -> Json.obj("$lte" -> start)))
+      .sort(Json.obj("date" -> -1))
+      .cursor[ChatRoomMessage]
+      .collect[List](limit)
 
   /**
    *

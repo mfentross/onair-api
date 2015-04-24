@@ -79,6 +79,39 @@ object Groups extends Controller {
   }
 
 
+  /**
+   *
+   * load messages for group
+   *
+   * @return
+   */
+  def loadMessagesForGroup = Authenticated.async(parse.json) { ar =>
+
+    ar.request.body.validate[GroupMessagesRequest].map { request =>
+
+      Group.isMember(ar.user.userID, request.groupID).flatMap { member =>
+        if(member) {
+
+          Group.loadMessagesForGroup(request.groupID, request.start, request.limit).map { list =>
+            Ok(JSONResponse.parseResult(Json.obj("messages" -> list), ResultStatus.NO_ERROR))
+          }
+
+        } else {
+          Future.successful(BadRequest(JSONResponse.parseResult(Json.obj(), ResultStatus.NOT_AUTHORIZED)))
+        }
+      }
+
+    }.getOrElse(Future.successful(Ok(JSONResponse.parseResult(Json.obj(), ResultStatus.INVALID_JSON))))
+
+  }
+
+  /**
+   *
+   * send message to group if user is member of it
+   *
+   * @param groupID
+   * @return
+   */
   def sendMessage(groupID: String) = Authenticated.async(parse.json) { ar =>
 
     Group.isMember(ar.user.userID, groupID).map { member =>
